@@ -83,6 +83,62 @@ bus_routes = bus_routes.sort_values(by='date')
 print(bus_routes)
 ```
 
+
+# Nasser's Analysis:
+```{python}
+cta_df = pd.read_csv('cta_br.csv')
+cta_df = cta_df[cta_df['route'].isin(['171','172'])]
+cta_df['date'] = pd.to_datetime(cta_df['date'])
+cta_df = cta_df[cta_df['date'] >= '2018-01-01']
+#cta_df['date'] = cta_df['date'].dt.strftime('%m-%Y')
+
+# Seperate routes:
+cta_grouped = cta_df.groupby(['route',
+ 'date'])['rides'].sum().reset_index(name='rides')
+cta_grouped.to_csv('cta_seperate.csv' , index = False)
+
+# combining both routes:
+cta_combined = cta_df.groupby('date')['rides'].sum().reset_index(name='rides')
+cta_combined.to_csv('cta_combined.csv', index = False)
+```
+
+** Here, we could do a graph comparing both routes by month, only to see the influx of people. 
+
+```{python}
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+cta_plot = cta_df.copy()
+cta_plot['year'] = cta_plot['date'].dt.year
+cta_plot['month'] = cta_plot['date'].dt.month
+cta_plot.to_csv('cta_plot.csv', index=False)
+
+# Plotting both routes
+cta_plot_combined = cta_plot.groupby('month')['rides'].sum().reset_index(name='rides')
+
+sns.lineplot(data = cta_plot, x = 'month', y = 'rides')
+plt.title('Monthly Rides 2018 - 2023')
+plt.xlabel('Month')
+plt.ylabel('Number of Rides')
+plt.show()
+```
+
+
+```{python}
+cta_plot_seperate = cta_plot.groupby(
+    ['route','month'])['rides'].sum().reset_index(name='rides')
+cta_plot_seperate.to_csv('cta_plot_seperate.csv', index = False)
+sns.lineplot(data=cta_plot_seperate, x='month', y='rides', hue='route', marker='o')
+
+plt.title('Rides per Month per Route 2018 - 2023')
+plt.xlabel('Month')
+plt.ylabel('Total Rides')
+plt.legend(title='Route')  
+
+plt.show()  
+```
+
+
 ** Here, we could do a graph comparing both routes by month, only to see the influx of people. 
 
 ** We could also do a graph showing the use of transportation depending of the type of day. Weekday, Official Holiday, and Weekend. I personally don't think this is necessary for our purposes. 
@@ -337,4 +393,100 @@ print(quarterly_rides_dv.columns)
 # In the Quarterly 2 data set, we care about the columns: '01 - Rental Details Local Start Time', '01 - Rental Details Local End Time','03 - Rental Start Station Name', '02 - Rental End Station Name'
 quarterly_rides_dv_2 = pd.read_csv('Quarterly_Bike_Trips_2.csv')
 print(quarterly_rides_dv_2.columns)
+```
+
+# Nasser Analysis:
+
+
+### based on Mario's approach
+```{python}
+# Convert to datetime
+quarterly_rides_dv['start_time'] = pd.to_datetime(quarterly_rides_dv['start_time'])
+
+# Get only month
+quarterly_rides_dv['month'] = quarterly_rides_dv['start_time'].dt.month
+
+# Rides per month
+quarterly_grouped = quarterly_rides_dv.groupby('month').size().reset_index(name = 'rides')
+```
+
+
+```{python}
+# Convert to datetime
+quarterly_rides_dv_2['01 - Rental Details Local Start Time'] = pd.to_datetime(quarterly_rides_dv_2['01 - Rental Details Local Start Time'])
+
+# Get only month
+quarterly_rides_dv_2['month'] = quarterly_rides_dv_2['01 - Rental Details Local Start Time'].dt.month
+
+# Rides per month
+quarterly_grouped_2 = quarterly_rides_dv_2.groupby('month').size().reset_index(name = 'rides')
+
+```
+
+
+```{python}
+# Convert to datetime
+monthly_rides_dv['started_at'] = pd.to_datetime(monthly_rides_dv['started_at'],errors='coerce')
+
+# Get only month
+monthly_rides_dv['month'] = monthly_rides_dv['started_at'].dt.month
+
+# Rides per month
+monthly_grouped = monthly_rides_dv.groupby('month').size().reset_index(name  = 'rides')
+```
+
+
+```{python}
+# Merge all divvy rides
+merged_divvy = (pd.concat([quarterly_grouped,quarterly_grouped_2,monthly_grouped]).groupby('month',as_index = False).sum())
+```
+
+
+```{python}
+merged_divvy.to_csv('merged_divvy.csv', index = False)
+```
+
+
+```{python}
+sns.lineplot(data = merged_divvy, x = 'month', y = 'rides')
+plt.title('Monthly Rides 2018 - 2021')
+plt.xlabel('Month')
+plt.ylabel('Number of Rides')
+plt.show()
+```
+
+### Based on my approach:
+
+```{python}
+folder_path = 'divvy_data'
+
+csv_files = [file for file in os.listdir(folder_path) if
+ file.endswith('.csv')]
+
+csv_files_paths = [os.path.join(folder_path, file) for
+ file in csv_files]
+
+df_list = [pd.read_csv(file) for file in csv_files_paths]
+
+divvy_full = pd.concat(df_list, ignore_index=True)
+```
+
+```{python}
+# Convert to datetime:
+divvy_full['started_at'] = pd.to_datetime(
+    divvy_full['started_at'], errors='coerce')
+
+```
+
+```{python}
+# Get month from date
+divvy_full['month'] = divvy_full['started_at'].dt.month
+```
+
+
+```{python}
+# Rides per month 
+divvy_full_per_month = divvy_full.groupby('month').size().reset_index(name = 'rides')
+
+divvy_full_per_month.to_csv('full_divvy.csv', index = False)
 ```
