@@ -24,13 +24,13 @@ def server(input, output, session):
     
     @reactive.calc
     def divvy_data():
-        df = pd.read_csv('full_divvy.csv')
+        df = pd.read_csv('rides_per_month.csv')
         return df
     
     @render.text
     def max_month_divvy():
         df = divvy_data()
-        max_rides_index = df['rides'].idxmax()
+        max_rides_index = df['count'].idxmax()
         max_rides_row = df.loc[max_rides_index]
         month = max_rides_row['month']
         return month
@@ -38,15 +38,15 @@ def server(input, output, session):
     @render.text
     def max_rides_divvy():
         df = divvy_data()
-        max_rides_index = df['rides'].idxmax()
+        max_rides_index = df['count'].idxmax()
         max_rides_row = df.loc[max_rides_index]
-        route = max_rides_row['rides']
+        route = max_rides_row['count']
         return route
     
     @render.text
     def min_month_divvy():
         df = divvy_data()
-        min_rides_index = df['rides'].idxmin()
+        min_rides_index = df['count'].idxmin()
         min_rides_row = df.loc[min_rides_index]
         month = min_rides_row['month']
         return month
@@ -54,16 +54,16 @@ def server(input, output, session):
     @render.text
     def min_rides_divvy():
         df = divvy_data()
-        min_rides_index = df['rides'].idxmin()
+        min_rides_index = df['count'].idxmin()
         min_rides_row = df.loc[min_rides_index]
-        rides = min_rides_row['rides']
+        rides = min_rides_row['count']
         return rides
     
     @render.plot
     def line_divvy():
         df = divvy_data()
-        fig = sns.lineplot(data = df, x = 'month', y = 'rides')
-        plt.title('Monthly Rides 2020 - 2023')
+        fig = sns.lineplot(data = df, x = 'month', y = 'count')
+        plt.title('Monthly Rides 2017 - 2023')
         plt.xlabel('Month')
         plt.ylabel('Number of Rides')
         
