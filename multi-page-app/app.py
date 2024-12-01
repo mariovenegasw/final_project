@@ -12,7 +12,7 @@ page1 = ui.navset_card_underline(
 page2 = ui.navset_card_underline(
     ui.nav_panel("Plot", ui.output_plot("line_divvy")),
     ui.nav_panel("Table", ui.output_data_frame("data_divvy")),
-    title="Divvy Rides per Month 2020 - 2023")
+    title="Divvy Rides per Month 2017 - 2023")
 
 
 app_ui = ui.page_navbar(
@@ -41,27 +41,7 @@ def server(input, output, session):
         plt.xlabel('Month')
         plt.ylabel('Total Rides')
         plt.legend(title='Route')  
-        '''
-        # Filter the data for each route
-        route_171 = df[df['route'] == '171']
-        route_172 = df[df['route'] == '172']
 
-        # Plot
-        fig, ax = plt.subplots(figsize=(10, 6))
-
-        # Plot each route separately
-        plt.plot(route_171['month'], route_171['rides'], marker='o', label='Route 171', color='blue')
-        plt.plot(route_172['month'], route_172['rides'], marker='s', label='Route 172', color='green')
-
-        # Add labels, title, and legend
-        plt.xlabel('Date', fontsize=12)
-        plt.ylabel('Rides', fontsize=12)
-        plt.title('Rides Per Date by Route', fontsize=14)
-        plt.legend()
-
-        plt.tight_layout()
-        plt.show()
-        '''
         return fig
 
     @render.data_frame
