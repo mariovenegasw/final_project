@@ -396,11 +396,20 @@ quarterly_rides_dv_2 = quarterly_rides_dv_2.rename(columns = {
         "02 - Rental End Station Name" : "to_station_name"
 })
 
+monthly_rides_dv = monthly_rides_dv.rename(columns = {
+    "started_at" : "start_time",
+    "ended_at" : "end_time",
+    "start_station_name" : "from_station_name",
+    "end_station_name" : "to_station_name"
+})
+
 quarterly_rides_dv_2 = quarterly_rides_dv_2[["start_time", "end_time", "from_station_name", "to_station_name"]]
 
 quarterly_rides_dv = quarterly_rides_dv[["start_time", "end_time", "from_station_name", "to_station_name"]]
 
-quarterly_rides = pd.concat([quarterly_rides_dv, quarterly_rides_dv_2], axis = 0)
+monthly_rides_dv = monthly_rides_dv[["start_time", "end_time", "from_station_name", "to_station_name"]]
+
+quarterly_rides = pd.concat([quarterly_rides_dv, quarterly_rides_dv_2, monthly_rides_dv], axis = 0)
 
 quarterly_rides['start_time'] = pd.to_datetime(quarterly_rides["start_time"], format='mixed')
 quarterly_rides["end_time"] = pd.to_datetime(quarterly_rides["end_time"], format='mixed')
@@ -481,6 +490,16 @@ bar_chart_divvy = alt.Chart(avg_rides_per_month_filtered_groupby).mark_bar().enc
 )
 
 bar_chart_divvy | lasagna
+```
+
+
+```{python}
+
+#creating the file that nasser needs for the dashboard
+quarterly_rides["month"] = quarterly_rides["year_month"].dt.month
+
+quarterly_rides_groupby = quarterly_rides.groupby("month").count().reset_index().drop(["end_time", "from_station_name", "to_station_name", "year_month"], axis = 1).rename(columns = {"start_time" : "count"})
+
 
 
 ```
