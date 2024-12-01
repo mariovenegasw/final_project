@@ -22,7 +22,7 @@ include-before-body:
 
 To work on this project, we used ... 
 
-The first step is to clean both of the data frames to ensure they only contain information relevant for out analysis. 
+The first step is to clean both of the data frames to ensure they only contain information relevant for our analysis. 
 
 - CTA database. The data was cleaned to identify limit it to CTA bus routes 171 and 172. Also, the data will only include information from 2018 onwards. 
 
@@ -30,12 +30,14 @@ The first step is to clean both of the data frames to ensure they only contain i
 
 ```{python}
 import pandas as pd
+import os
+import altair as alt
 
 # Read the CSV file into a DataFrame
 bus_routes = pd.read_csv('cta_br.csv')
 
 # Restrict the data to routes 171 and 172
-bus_routes = df[df['route'].isin(['171', '172'])].copy()
+bus_routes = bus_routes[bus_routes['route'].isin(['171', '172'])].copy()
 
 # From 2018 onwards
 bus_routes['date'] = pd.to_datetime(bus_routes['date'])
@@ -73,6 +75,51 @@ print(observations_per_month)
 # The data is uploaded daily for each of the routes, this is why the count is twice as much as the days in each month. 
 ```
 
+```{python}
+
+'''DANIEL GRAPHS'''
+
+
+# Taking the above code block, finding the average for each month, from 2018 to 2024, and plotting this.
+
+average_ridership_list = []
+for month in range(1, 1 + len(observations_per_month["month"].unique())):
+    average_ridership = observations_per_month[observations_per_month["month"] == month]
+    average_ridership = average_ridership["count"].mean()
+    average_ridership_list.append(round(average_ridership, 2))
+
+months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+
+average_ridership_df = pd.DataFrame({"monthly_avg_riders": average_ridership_list,
+                                     "month": months})
+
+
+# making the bar graph
+bar_chart = alt.Chart(average_ridership_df).mark_bar().encode(
+    x=alt.X('month:N', sort=['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']),  # Month on the X-axis
+    y='monthly_avg_riders:Q',
+    color='month:N',  
+).properties(
+    width=800, 
+    height=400  
+)
+
+
+# heatmap of month on x axis and year on y axis
+heatmap = alt.Chart(observations_per_month).mark_rect().encode(
+    x=alt.X('month:O', title='Month', sort=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]),  # Month on X-axis (ordinal, sorted by month)
+    y=alt.Y('year:O', title='Year'),  # Year on Y-axis (ordinal)
+    color='count:Q',  # Color represents the count (quantitative)
+    tooltip=['year:O', 'month:O', 'count:Q']  # Show year, month, and count on hover
+).properties(
+    width=800,
+    height=400
+)
+
+bar_chart | heatmap
+
+```
+
 ** Based on this information, I think we could do a heat graph, or lasagna graph to show how the use of the routes has varied by month for each year. 
 
 ```{python}
@@ -93,12 +140,12 @@ print(bus_routes)
 # Up to 2020, the information was uploaded quarterly, afer this, it started to be uploaded monthly. Before merging the data, it is necessary to explore the data bases. 
 
 # Quarterly data base:
-quarterly_sample = pd.read_csv('DivvyData/Divvy_Trips_2020_Q1.csv')
+quarterly_sample = pd.read_csv('Divvy_Trips_2020_Q1.csv')
 
 print(quarterly_sample.head())
 
 # Monthly data base:
-monthly_sample = pd.read_csv('DivvyData/202004-divvy-tripdata.csv')
+monthly_sample = pd.read_csv('FinalProject_DDBB/divvy_data/202004-divvy-tripdata.csv')
 
 print(monthly_sample.head())
 ```
@@ -112,7 +159,7 @@ import geopandas as gpd
 from shapely.geometry import shape, Point
 
 # Data base containing geometry information about Chicago
-chicago_areas = pd.read_csv('chicago_areas.csv') 
+chicago_areas = pd.read_csv('FinalProject_DDBB/chicago_areas.csv') 
 
 # Data base containing geographic information of Divvy docking stations
 stations_gdf = gpd.read_file('Divvy stations/divvy_stations.shp') 
@@ -170,7 +217,7 @@ import os
 import pandas as pd
 
 # Name the folder that contains all the quarterly and monthly information of divvy trips
-folder_path = 'divvy_data'
+folder_path = 'FinalProject_DDBB/divvy_data'
 
 # List of unique stations in Hyde Park
 unique_stations = ['Cornell Ave & Hyde Park Blvd', 'Griffin Museum of Science and Industry', 'Blackstone Ave & 59th St' 'Ellis Ave & 58th St', 'University Ave & 59th St','University Ave & 57th St', 'Ellis Ave & 53rd St','Lake Park Ave & 53rd St','Lake Park Ave & 56th St', 'Ellis Ave & 55th St','Harper Ave & 59th St','Woodlawn Ave & 55th St', 'Kimbark Ave & 53rd St','Woodlawn Ave & 58th St','Shore Dr & 55th St']
@@ -223,7 +270,7 @@ import os
 import pandas as pd
 
 # Name the folder that contains all the quarterly and monthly information of divvy trips
-folder_path = 'divvy_data'
+folder_path = 'FinalProject_DDBB/divvy_data'
 
 # List of unique stations in Hyde Park
 unique_stations = ['Cornell Ave & Hyde Park Blvd', 'Griffin Museum of Science and Industry', 'Blackstone Ave & 59th St' 'Ellis Ave & 58th St', 'University Ave & 59th St','University Ave & 57th St', 'Ellis Ave & 53rd St','Lake Park Ave & 53rd St','Lake Park Ave & 56th St', 'Ellis Ave & 55th St','Harper Ave & 59th St','Woodlawn Ave & 55th St', 'Kimbark Ave & 53rd St','Woodlawn Ave & 58th St','Shore Dr & 55th St']
@@ -276,7 +323,7 @@ import os
 import pandas as pd
 
 # Name the folder that contains all the quarterly and monthly information of divvy trips
-folder_path = 'divvy_data'
+folder_path = 'FinalProject_DDBB/divvy_data'
 
 # List of unique stations in Hyde Park
 unique_stations = ['Cornell Ave & Hyde Park Blvd', 'Griffin Museum of Science and Industry', 'Blackstone Ave & 59th St' 'Ellis Ave & 58th St', 'University Ave & 59th St','University Ave & 57th St', 'Ellis Ave & 53rd St','Lake Park Ave & 53rd St','Lake Park Ave & 56th St', 'Ellis Ave & 55th St','Harper Ave & 59th St','Woodlawn Ave & 55th St', 'Kimbark Ave & 53rd St','Woodlawn Ave & 58th St','Shore Dr & 55th St']
@@ -337,4 +384,122 @@ print(quarterly_rides_dv.columns)
 # In the Quarterly 2 data set, we care about the columns: '01 - Rental Details Local Start Time', '01 - Rental Details Local End Time','03 - Rental Start Station Name', '02 - Rental End Station Name'
 quarterly_rides_dv_2 = pd.read_csv('Quarterly_Bike_Trips_2.csv')
 print(quarterly_rides_dv_2.columns)
+```
+
+```{python}
+""" Daniel """
+# merging the quarterly data into one concat'd dataset
+quarterly_rides_dv_2 = quarterly_rides_dv_2.rename(columns = {
+        "01 - Rental Details Local Start Time" : "start_time",
+        "01 - Rental Details Local End Time" : "end_time",
+        "03 - Rental Start Station Name" : "from_station_name",
+        "02 - Rental End Station Name" : "to_station_name"
+})
+
+monthly_rides_dv = monthly_rides_dv.rename(columns = {
+    "started_at" : "start_time",
+    "ended_at" : "end_time",
+    "start_station_name" : "from_station_name",
+    "end_station_name" : "to_station_name"
+})
+
+quarterly_rides_dv_2 = quarterly_rides_dv_2[["start_time", "end_time", "from_station_name", "to_station_name"]]
+
+quarterly_rides_dv = quarterly_rides_dv[["start_time", "end_time", "from_station_name", "to_station_name"]]
+
+monthly_rides_dv = monthly_rides_dv[["start_time", "end_time", "from_station_name", "to_station_name"]]
+
+quarterly_rides = pd.concat([quarterly_rides_dv, quarterly_rides_dv_2, monthly_rides_dv], axis = 0)
+
+quarterly_rides['start_time'] = pd.to_datetime(quarterly_rides["start_time"], format='mixed')
+quarterly_rides["end_time"] = pd.to_datetime(quarterly_rides["end_time"], format='mixed')
+
+
+# Extract the year and month from the start_time
+quarterly_rides['year_month'] = quarterly_rides['start_time'].dt.to_period('M')
+
+# Group by station and the year_month, and count the rides for each group
+rides_per_station_per_month = quarterly_rides.groupby(['from_station_name', 'year_month']).size().reset_index(name='ride_count')
+
+# Show the result
+print(rides_per_station_per_month.head())
+```
+
+```{python}
+
+rides_per_station_per_month['year_month'] = rides_per_station_per_month['year_month'].astype(str)
+
+
+lasagna =  alt.Chart(rides_per_station_per_month).mark_rect().encode(
+    x=alt.X('year_month:N', title='Year-Month', sort=None),  # X-axis: Year-Month
+    y=alt.Y('from_station_name:N', title='Station Name'),  # Y-axis: Station Name
+    color=alt.Color('ride_count:Q', scale=alt.Scale(scheme='blues'), title='Ride Count'),  # Color based on the number of rides
+).properties(
+    width=800,
+    height=400,
+    title="Monthly Divvy Rides per Station, Hyde Park"
+)
+
+lasagna
+```
+
+```{python}
+
+# Calculate average rides per month
+avg_rides_per_month = rides_per_station_per_month.groupby('year_month')['ride_count'].mean().reset_index(name='avg_ride_count')
+
+avg_rides_per_month['year_month'] = pd.to_datetime(avg_rides_per_month['year_month'], format='%Y-%m')
+
+# Extract year and month to filter data by full years
+avg_rides_per_month['year'] = avg_rides_per_month['year_month'].dt.year
+avg_rides_per_month['month'] = avg_rides_per_month['year_month'].dt.month
+
+# Filter for the 12 months in the year (January to December)
+avg_rides_per_month_filtered = avg_rides_per_month[avg_rides_per_month['month'] <= 12]
+
+# Remove any months beyond the 12-month cycle (for example, exclude months that are not part of the calendar)
+avg_rides_per_month_filtered = avg_rides_per_month_filtered[avg_rides_per_month_filtered['month'].between(1, 12)]
+
+months = {
+    1: "January", 
+    2: "February", 
+    3: "March",
+    4: "April",
+    5: "May",
+    6: "June",
+    7: "July",
+    8: "August",
+    9: "September",
+    10: "October", 
+    11: "November",
+    12: "December"}
+
+avg_rides_per_month_filtered["month"] = avg_rides_per_month_filtered["month"].apply(lambda x: months[x])
+
+avg_rides_per_month_filtered_groupby = avg_rides_per_month_filtered.groupby("month").mean().reset_index()
+
+# making the bar graph
+bar_chart_divvy = alt.Chart(avg_rides_per_month_filtered_groupby).mark_bar().encode(
+    x=alt.X('month:N', sort=['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']),  # Month on the X-axis
+    y='avg_ride_count:Q',
+    color='month:N',  
+).properties(
+    width=800, 
+    height=400,
+    title= "Average Divvy Monthly Ridership, Hyde Park"  
+)
+
+bar_chart_divvy | lasagna
+```
+
+
+```{python}
+
+#creating the file that nasser needs for the dashboard
+quarterly_rides["month"] = quarterly_rides["year_month"].dt.month
+
+quarterly_rides_groupby = quarterly_rides.groupby("month").count().reset_index().drop(["end_time", "from_station_name", "to_station_name", "year_month"], axis = 1).rename(columns = {"start_time" : "count"})
+
+
+
 ```
