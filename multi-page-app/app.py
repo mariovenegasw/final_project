@@ -71,14 +71,14 @@ def server(input, output, session):
     # Page 2:
     @reactive.calc
     def divvy_data():
-        df_divvy = pd.read_csv("full_divvy.csv")
+        df_divvy = pd.read_csv("rides_per_month.csv")
         return df_divvy
     
     @render.plot
     def line_divvy():
         df = divvy_data()
-        fig = sns.lineplot(data = df, x = 'month', y = 'rides')
-        plt.title('Monthly Rides 2020 - 2023')
+        fig = sns.lineplot(data = df, x = 'month', y = 'count')
+        plt.title('Monthly Rides 2017 - 2023')
         plt.xlabel('Month')
         plt.ylabel('Number of Rides')
         
@@ -86,7 +86,7 @@ def server(input, output, session):
 
     @render.data_frame
     def data_divvy():
-        df = pd.read_csv("full_divvy.csv")
+        df = pd.read_csv("rides_per_month.csv")
         return df
 
 
