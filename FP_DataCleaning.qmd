@@ -98,7 +98,6 @@ average_ridership_df = pd.DataFrame({"monthly_avg_riders": average_ridership_lis
 bar_chart = alt.Chart(average_ridership_df).mark_bar().encode(
     x=alt.X('month:N', sort=['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']),  # Month on the X-axis
     y='monthly_avg_riders:Q',
-    color='month:N',  
 ).properties(
     width=800, 
     height=400  
@@ -107,10 +106,8 @@ bar_chart = alt.Chart(average_ridership_df).mark_bar().encode(
 
 # heatmap of month on x axis and year on y axis
 heatmap = alt.Chart(observations_per_month).mark_rect().encode(
-    x=alt.X('month:O', title='Month', sort=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]),  # Month on X-axis (ordinal, sorted by month)
-    y=alt.Y('year:O', title='Year'),  # Year on Y-axis (ordinal)
-    color='count:Q',  # Color represents the count (quantitative)
-    tooltip=['year:O', 'month:O', 'count:Q']  # Show year, month, and count on hover
+    x=alt.X('month:O', title='Month', sort=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]),
+    y=alt.Y('year:O', title='Year'), 
 ).properties(
     width=800,
     height=400
@@ -416,7 +413,7 @@ quarterly_rides["end_time"] = pd.to_datetime(quarterly_rides["end_time"], format
 
 
 # Extract the year and month from the start_time
-quarterly_rides['year_month'] = quarterly_rides['start_time'].dt.to_period('M')
+quarterly_rides['year_month'] = quarterly_rides['start_time'].dt.strftime('%Y-%m')
 
 # Group by station and the year_month, and count the rides for each group
 rides_per_station_per_month = quarterly_rides.groupby(['from_station_name', 'year_month']).size().reset_index(name='ride_count')
@@ -427,20 +424,33 @@ print(rides_per_station_per_month.head())
 
 ```{python}
 
-rides_per_station_per_month['year_month'] = rides_per_station_per_month['year_month'].astype(str)
+rides_per_station_per_month["year"] = pd.to_datetime(rides_per_station_per_month['year_month']).dt.year
+
+rides_per_station_per_month_2017 = rides_per_station_per_month[rides_per_station_per_month["year"] < 2020]
+rides_per_station_per_month_2020 = rides_per_station_per_month[rides_per_station_per_month["year"] >= 2020]
 
 
-lasagna =  alt.Chart(rides_per_station_per_month).mark_rect().encode(
+lasagna2017 =  alt.Chart(rides_per_station_per_month_2017).mark_rect().encode(
     x=alt.X('year_month:N', title='Year-Month', sort=None),  # X-axis: Year-Month
     y=alt.Y('from_station_name:N', title='Station Name'),  # Y-axis: Station Name
     color=alt.Color('ride_count:Q', scale=alt.Scale(scheme='blues'), title='Ride Count'),  # Color based on the number of rides
 ).properties(
     width=800,
     height=400,
-    title="Monthly Divvy Rides per Station, Hyde Park"
+    title="Monthly Divvy Rides per Station pre Covid, Hyde Park"
 )
 
-lasagna
+lasagna2020 =  alt.Chart(rides_per_station_per_month_2020).mark_rect().encode(
+    x=alt.X('year_month:N', title='Year-Month', sort=None),  # X-axis: Year-Month
+    y=alt.Y('from_station_name:N', title='Station Name'),  # Y-axis: Station Name
+    color=alt.Color('ride_count:Q', scale=alt.Scale(scheme='blues'), title='Ride Count'),  # Color based on the number of rides
+).properties(
+    width=800,
+    height=400,
+    title="Monthly Divvy Rides per Station post Covid, Hyde Park"
+)
+
+lasagna2017 | lasagna2020
 ```
 
 ```{python}
@@ -448,17 +458,11 @@ lasagna
 # Calculate average rides per month
 avg_rides_per_month = rides_per_station_per_month.groupby('year_month')['ride_count'].mean().reset_index(name='avg_ride_count')
 
-avg_rides_per_month['year_month'] = pd.to_datetime(avg_rides_per_month['year_month'], format='%Y-%m')
+avg_rides_per_month["year_month"] = pd.to_datetime(avg_rides_per_month["year_month"])
 
 # Extract year and month to filter data by full years
 avg_rides_per_month['year'] = avg_rides_per_month['year_month'].dt.year
 avg_rides_per_month['month'] = avg_rides_per_month['year_month'].dt.month
-
-# Filter for the 12 months in the year (January to December)
-avg_rides_per_month_filtered = avg_rides_per_month[avg_rides_per_month['month'] <= 12]
-
-# Remove any months beyond the 12-month cycle (for example, exclude months that are not part of the calendar)
-avg_rides_per_month_filtered = avg_rides_per_month_filtered[avg_rides_per_month_filtered['month'].between(1, 12)]
 
 months = {
     1: "January", 
@@ -474,22 +478,22 @@ months = {
     11: "November",
     12: "December"}
 
-avg_rides_per_month_filtered["month"] = avg_rides_per_month_filtered["month"].apply(lambda x: months[x])
+avg_rides_per_month_filtered = avg_rides_per_month
+avg_rides_per_month_filtered["month"] = avg_rides_per_month["month"].apply(lambda x: months[x]).astype(str)
 
 avg_rides_per_month_filtered_groupby = avg_rides_per_month_filtered.groupby("month").mean().reset_index()
 
 # making the bar graph
 bar_chart_divvy = alt.Chart(avg_rides_per_month_filtered_groupby).mark_bar().encode(
-    x=alt.X('month:N', sort=['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']),  # Month on the X-axis
-    y='avg_ride_count:Q',
-    color='month:N',  
+    x=alt.X('month:N', sort=['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']),
+    y='avg_ride_count:Q',  
 ).properties(
     width=800, 
     height=400,
     title= "Average Divvy Monthly Ridership, Hyde Park"  
 )
 
-bar_chart_divvy | lasagna
+bar_chart_divvy | lasagna2017 | lasagna2020
 ```
 
 
