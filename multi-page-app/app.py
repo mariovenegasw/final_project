@@ -5,7 +5,9 @@ import matplotlib.pyplot as plt
 
 
 page1 = ui.navset_card_underline(
-    ui.nav_panel("Plot", ui.output_plot("line_cta")),
+    ui.nav_panel("Plot",
+                 ui.input_checkbox_group("route", "Select Route", 
+                                                choices=["171","172"],selected=["171","172"]) ,ui.output_plot("line_cta")),
     ui.nav_panel("Table", ui.output_data_frame("data_cta")),
     title="CTA Rides per Month 2018 - 2023")
 
@@ -29,10 +31,16 @@ def server(input, output, session):
     def cta_data():
         df_cta = pd.read_csv("cta_plot_seperate.csv")
         return df_cta
-    
+    @reactive.calc
+    def filtered_cta_data():
+        df = cta_data()
+        selected_routes = input.route.get()
+        if selected_routes:
+            df = df[df["route"].astype(str).isin(selected_routes)]
+        return df
     @render.plot
     def line_cta():
-        df = cta_data()
+        df = filtered_cta_data()
         
         fig = sns.lineplot(data=df, x='month', 
                            y='rides', hue='route', marker='o')
