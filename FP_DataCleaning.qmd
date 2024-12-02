@@ -45,7 +45,7 @@ document.
  that the analysis seeks to determine the demand by time of the year, the team decided to group the data by
  year and month. 
 
-3. DANIEL: Describe this chunk
+3. This code block creates a list that captures the average number of rides on a monthly basis across all years from the previous observations_per_month variable. We then create a dataframe that matches the months with the average monthly observations, and plot this into a bar chart. Finally, we use the same data to create a heatmap, however the heatmap is created where the X axis is the month, and the Y axis is a year, which means that each cell is a unique month of each year. By observing the year-month, we can clearly visualize the seasonal pattern of ridership in the data.
 
 4. The information provided by Divvy regarding every ride taken in Chicago was uploaded quarterly from 2018-2020
  and monthly from 2021-2023. In addition, the names of the columns included in the data bases changed at some point. This chunk explores the differences between each kind of data base, monthly and quarterly.
@@ -73,7 +73,23 @@ Since the information was provided in data sets with different column format, th
 
  Chunks 6.1, 6.2, and 6.3 show the process described above for the three column formats identified. 
 
-7. DANIEL and NASSER: Include the description of your codes from here on. 
+7. This code block is simply naming the datasets to variables so that they can be referenced in preperation for joining into one large dataset.
+
+8. We first create dicitionaries in preperation for renaming the columns such that we can concatenate the dataframes together on a column by column basis. Lines 445 - 450 rename the columns such that all columns across the three datasets are the same, and line 450 creates the singular concatenated dataset. Lines 452 through 455 are for data cleaning purposes, while line 458 groups the data by station and date, naming the new column "ride_count". Ride_count will be essential in the following visualizations and analysis.
+
+9. Line 467 is creating a new column titled "year" within the concatenated dataset based on the year of the "year_month" column. We then break the concatenated dataset into two variables, one that contains data pre 2020 and another that contains data post 2020 to highlight any effects that may have occured due to Covid. Additionally, it is worth noting that instruction was fully remote for 2020-2021, which further influenced our decision to create two new graphs for our visualizations. 
+
+After breaking the data into pre and post covid, we create two lasagna plots to demonstrate Divvy ridership on a year_month and per station basis.
+
+10. In this code block we attempt to generate a average monthly Divvy ridership to compare to the lasagna plots above. We want to see how an aggregated analysis from 2017 to 2024 demonstrate **average** monthly ridership in contrast to the lasagna plots, which show ridership on a monthly basis for each station. 
+
+We group the data by year month, and take the mean of the ride_count column, saving that information in the newely created "avg_ride_count" column. 
+
+Since the monthly data is saved numerically, we use the months dictionary to map the numeric values via a lambda function to the names of the month, ensuring to save the data in the column as a string. We then further groupby the month column to create a bar chart of the average monthly Divvy utilization. 
+
+The benefit of visualizing the data with the lasagna plots in comparison to the bar chart is that we are able to get extra information from the lasagna plots, such as which stations are most active and when, which is not visible in the bar plot. 
+
+11. This code block creates a file that is essential to plotting data in the dashboard.
 
 
 
@@ -108,8 +124,6 @@ print(f"Number of rows: {row_count}")
 2. 
 
 ```{python}
-import pandas as pd
-
 # Ensure 'date' is in datetime format
 bus_routes['date'] = pd.to_datetime(bus_routes['date'])
 
@@ -118,7 +132,7 @@ bus_routes['year'] = bus_routes['date'].dt.year
 bus_routes['month'] = bus_routes['date'].dt.month
 
 # Group by year and month, and count rows
- cta_grouped = cta_df.groupby(['route', 'date'])['rides'].sum().reset_index(name='rides') cta_grouped.to_csv('cta_seperate.csv' , index = False)
+cta_grouped = cta_df.groupby(['route', 'date'])['rides'].sum().reset_index(name='rides') cta_grouped.to_csv('cta_seperate.csv' , index = False)
 
 # Display the result
 print(cta_grouped)
@@ -401,8 +415,7 @@ else:
 7. 
 
 ```{python}
-# Merge the Quarterly and Monthly data sets. Take a look at the names, but I will highlight the ones that we have to include in the merge (times and location)
-
+# This code cell is just naming the dataframes so that we can merge them later.
 # In the Monthly data set, we care about the columns: 'started_at', 'ended_at', 'start_station_name', 'end_station_name'
 monthly_rides_dv = pd.read_csv('Monthly_Bike_Trips.csv')
 print(monthly_rides_dv.columns)
@@ -416,9 +429,12 @@ quarterly_rides_dv_2 = pd.read_csv('Quarterly_Bike_Trips_2.csv')
 print(quarterly_rides_dv_2.columns)
 ```
 
+8. 
 ```{python}
 """ Daniel """
 # merging the quarterly data into one concat'd dataset
+
+#creating dictionaries to prepare for renaming columns in relevant datasets.
 quarterly_rides_dv_2 = quarterly_rides_dv_2.rename(columns = {
         "01 - Rental Details Local Start Time" : "start_time",
         "01 - Rental Details Local End Time" : "end_time",
@@ -433,18 +449,17 @@ monthly_rides_dv = monthly_rides_dv.rename(columns = {
     "end_station_name" : "to_station_name"
 })
 
+#matching all of the names of the datasets.
 quarterly_rides_dv_2 = quarterly_rides_dv_2[["start_time", "end_time", "from_station_name", "to_station_name"]]
-
 quarterly_rides_dv = quarterly_rides_dv[["start_time", "end_time", "from_station_name", "to_station_name"]]
-
 monthly_rides_dv = monthly_rides_dv[["start_time", "end_time", "from_station_name", "to_station_name"]]
 
+#creating one large dataset
 quarterly_rides = pd.concat([quarterly_rides_dv, quarterly_rides_dv_2, monthly_rides_dv], axis = 0)
 
+#verifying that data is in correct format.
 quarterly_rides['start_time'] = pd.to_datetime(quarterly_rides["start_time"], format='mixed')
 quarterly_rides["end_time"] = pd.to_datetime(quarterly_rides["end_time"], format='mixed')
-
-# Extract the year and month from the start_time
 quarterly_rides['year_month'] = quarterly_rides['start_time'].dt.strftime('%Y-%m')
 
 # Group by station and the year_month, and count the rides for each group
@@ -454,13 +469,14 @@ rides_per_station_per_month = quarterly_rides.groupby(['from_station_name', 'yea
 print(rides_per_station_per_month.head())
 ```
 
+9. 
 ```{python}
-
+# creating a year column
 rides_per_station_per_month["year"] = pd.to_datetime(rides_per_station_per_month['year_month']).dt.year
 
+#filtering for pre and post covid, for the purpose of visualizations
 rides_per_station_per_month_2017 = rides_per_station_per_month[rides_per_station_per_month["year"] < 2020]
 rides_per_station_per_month_2020 = rides_per_station_per_month[rides_per_station_per_month["year"] >= 2020]
-
 
 lasagna2017 =  alt.Chart(rides_per_station_per_month_2017).mark_rect().encode(
     x=alt.X('year_month:N', title='Year-Month', sort=None),  # X-axis: Year-Month
@@ -485,12 +501,11 @@ lasagna2020 =  alt.Chart(rides_per_station_per_month_2020).mark_rect().encode(
 lasagna2017 | lasagna2020
 ```
 
+10. 
 ```{python}
 
 # Calculate average rides per month
 avg_rides_per_month = rides_per_station_per_month.groupby('year_month')['ride_count'].mean().reset_index(name='avg_ride_count')
-
-avg_rides_per_month["year_month"] = pd.to_datetime(avg_rides_per_month["year_month"])
 
 # Extract year and month to filter data by full years
 avg_rides_per_month['year'] = avg_rides_per_month['year_month'].dt.year
@@ -528,7 +543,7 @@ bar_chart_divvy = alt.Chart(avg_rides_per_month_filtered_groupby).mark_bar().enc
 bar_chart_divvy | lasagna2017 | lasagna2020
 ```
 
-
+11.
 ```{python}
 
 #creating the file that nasser needs for the dashboard
