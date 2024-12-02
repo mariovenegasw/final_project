@@ -18,15 +18,68 @@ include-before-body:
     }
 ---
 
-## Used data
+## Write-up
 
-To work on this project, we used ... 
+This work analyses the use of public transportation within the Hyde Park in Chicago. As most of the poeple in the
+area are students of the University of Chicago, this analysis seeks to determine the use of Divvy Bikes and CTA 
+buses to define if there should be any changes in the facilitation of services by the University given the
+preferences and demands of students during different times of the year. 
 
-The first step is to clean both of the data frames to ensure they only contain information relevant for our analysis. 
+For the analysis, the team used to main sources of data: 
+- CTA - Ridership - Daily Boarding Totals: This dataset shows systemwide boardings for both bus and rail services
+provided by CTA, dating back to 2001. 
+- Divvy Trip history data: Divvy offers quarterly and monthly datasets of every trip taken since 2018. 
 
-- CTA database. The data was cleaned to identify limit it to CTA bus routes 171 and 172. Also, the data will only include information from 2018 onwards. 
+However, this data had to be cleaned to limit it to (a.) the interest dates (2018-2023, which were selected based 
+on theavailability of data from Divvy), and (b.) Hyde Park. In addition, as the data was cleaned, the team made
+graphs to visualize the data. Finally, the team made a dashboards that allows to visualize the information for 
+particular timeframes. 
 
-** It could be useful to include a map with the routes and stops?
+The steps followed for this are enumerated below. Each number corresponds to a chunk in the coding section of the
+document. 
+
+1. As mentioned above, the data base from the CTA includes information dating back to 2001, and for every bus route
+ of the CTA in Chicago. The coding shows the steps to limit the information to bus routes 171 and 172 - which operate only in Hyde Park, and to observations corresponding to 2018 onwards. 
+
+2. After the step above, the CTA data included information for each day from 2018 to 2023. However, due to the fact
+ that the analysis seeks to determine the demand by time of the year, the team decided to group the data by
+ year and month. 
+
+3. DANIEL: Describe this chunk
+
+4. The information provided by Divvy regarding every ride taken in Chicago was uploaded quarterly from 2018-2020
+ and monthly from 2021-2023. In addition, the names of the columns included in the data bases changed at some point. This chunk explores the differences between each kind of data base, monthly and quarterly.
+
+5. In addition, the Divvy data includes information for every trip made in the Chicago area. The data had to be
+ cleaned to include information for Divvy docking stations in Hyde Park only. To identify these docking stations,
+ the team used the following data bases:
+- chicago_areas. This data base from the Chicago City Government includes geometric coordinates for each area in 
+Chicago. 
+- divvy_stations. This shape data base from the City of Chicago includes the geographic coordinates and names of 
+every Divvy docking station in the city. 
+
+The general steps followed to identify the doching stations in Hyde Park using this information were the following:
+- Convert the geometry column in chicago_areas to shapely geometry to make it compatible with the station_gdf,
+ which contained the geographic information of divvy docking stations
+- Limit geographic location to Hyde Park
+- Perform spatial joint to print the name of the Divvy Stations in Hyde Park
+
+6. Once the names of the stations in Hyde Park were identified, the team used them to limit the observations in the
+ Divvy data sets to trips that started and ended in Hyde Park. This makes the analysis more comparable to the
+ use of routes 171 and 172, which only operate inside Hyde Park. 
+
+Since the information was provided in data sets with different column format, the team had to do three different
+ scraping codes from a folder containing all data bases uploaded by Divvy. The code cleans each of the data sets from Divvy so they only include trips that started and ended in docking stations identified within Hyde Park. Once all the data bases were cleaned, they were concatenated into a single file. 
+
+ Chunks 6.1, 6.2, and 6.3 show the process described above for the three column formats identified. 
+
+7. DANIEL and NASSER: Include the description of your codes from here on. 
+
+
+
+## CTA Routes
+
+1.
 
 ```{python}
 import pandas as pd
@@ -46,15 +99,13 @@ bus_routes = bus_routes[bus_routes['date'] >= '2018-01-01']
 
 # Display the first few rows
 print(bus_routes.head())
-```
 
-- Analysis of the data: 
-
-```{python}
 # Number of of observations
 row_count = bus_routes.shape[0]
 print(f"Number of rows: {row_count}")
 ```
+
+2. 
 
 ```{python}
 import pandas as pd
@@ -73,13 +124,17 @@ observations_per_month = bus_routes.groupby(['year', 'month']).size().reset_inde
 print(observations_per_month)
 
 # The data is uploaded daily for each of the routes, this is why the count is twice as much as the days in each month. 
+
+# Sort the filtered data by the 'date' column
+bus_routes = bus_routes.sort_values(by='date')
+
+# Display the sorted DataFrame
+print(bus_routes)
 ```
 
+3. 
+
 ```{python}
-
-'''DANIEL GRAPHS'''
-
-
 # Taking the above code block, finding the average for each month, from 2018 to 2024, and plotting this.
 
 average_ridership_list = []
@@ -117,21 +172,7 @@ bar_chart | heatmap
 
 ```
 
-** Based on this information, I think we could do a heat graph, or lasagna graph to show how the use of the routes has varied by month for each year. 
-
-```{python}
-# Sort the filtered data by the 'date' column
-bus_routes = bus_routes.sort_values(by='date')
-
-# Display the sorted DataFrame
-print(bus_routes)
-```
-
-** Here, we could do a graph comparing both routes by month, only to see the influx of people. 
-
-** We could also do a graph showing the use of transportation depending of the type of day. Weekday, Official Holiday, and Weekend. I personally don't think this is necessary for our purposes. 
-
-- Divvy database
+4. Divvy ridership
 
 ```{python}
 # Up to 2020, the information was uploaded quarterly, afer this, it started to be uploaded monthly. Before merging the data, it is necessary to explore the data bases. 
@@ -147,8 +188,7 @@ monthly_sample = pd.read_csv('FinalProject_DDBB/divvy_data/202004-divvy-tripdata
 print(monthly_sample.head())
 ```
 
-- Identify docking stations in Hyde Park. For this, we used two data bases from the City of Chicago. One contains the geographic location of each area, and the other, the location of the docking stations. 
-
+5. 
 
 ```{python}
 import pandas as pd
@@ -163,9 +203,7 @@ stations_gdf = gpd.read_file('Divvy stations/divvy_stations.shp')
 
 # Ensure the shapefile has a valid CRS
 stations_gdf = stations_gdf.to_crs("EPSG:4326") 
-```
 
-```{python}
 # Convert the geometry column in chicago_areas to shapely geometry to make it compatible with the station_gdf df. 
 
 from shapely.wkt import loads
@@ -175,15 +213,11 @@ chicago_areas['the_geom'] = chicago_areas['the_geom'].apply(loads)
 
 # Convert to a GeoDataFrame
 chicago_areas = gpd.GeoDataFrame(chicago_areas, geometry='the_geom', crs="EPSG:4326")
-```
 
-```{python}
 # Limit geographic location to Hyde Park
 
 hyde_park = chicago_areas[chicago_areas['COMMUNITY'] == 'HYDE PARK']
-```
 
-```{python}
 # Perform spatial joint to print the name of the Divvy Stations in Hyde Park
 
 # Ensure both GeoDataFrames have the same CRS
@@ -195,9 +229,7 @@ stations_in_hp = gpd.sjoin(stations_gdf, hyde_park, predicate='within')
 # View and save results
 print(stations_in_hp)
 stations_in_hp.to_file('stations_in_area.shp')
-```
 
-```{python}
 # Print the name of the bike stations
 unique_stations = stations_in_hp['station_na'].unique()
 
@@ -205,7 +237,9 @@ unique_stations = stations_in_hp['station_na'].unique()
 print(unique_stations)
 ```
 
-Now that we have the name of all the stations, we build a data base with all the trips that started and ended in Hyde Park. We attempt to do this by going into each of the Divvy Data sets. 
+6. 
+
+6.1.
 
 ```{python}
 #Monthly_data
@@ -217,7 +251,11 @@ import pandas as pd
 folder_path = 'FinalProject_DDBB/divvy_data'
 
 # List of unique stations in Hyde Park
-unique_stations = ['Cornell Ave & Hyde Park Blvd', 'Griffin Museum of Science and Industry', 'Blackstone Ave & 59th St' 'Ellis Ave & 58th St', 'University Ave & 59th St','University Ave & 57th St', 'Ellis Ave & 53rd St','Lake Park Ave & 53rd St','Lake Park Ave & 56th St', 'Ellis Ave & 55th St','Harper Ave & 59th St','Woodlawn Ave & 55th St', 'Kimbark Ave & 53rd St','Woodlawn Ave & 58th St','Shore Dr & 55th St']
+unique_stations = ['Cornell Ave & Hyde Park Blvd', 'Griffin Museum of Science and Industry', 
+'Blackstone Ave & 59th St' 'Ellis Ave & 58th St', 'University Ave & 59th St','University Ave & 57th St', 
+'Ellis Ave & 53rd St','Lake Park Ave & 53rd St','Lake Park Ave & 56th St', 'Ellis Ave & 55th St',
+'Harper Ave & 59th St','Woodlawn Ave & 55th St', 'Kimbark Ave & 53rd St','Woodlawn Ave & 58th St',
+'Shore Dr & 55th St']
 
 # List to hold the filtered DataFrames
 filtered_data = []
@@ -229,24 +267,18 @@ for file_name in os.listdir(folder_path):
         file_path = os.path.join(folder_path, file_name)
         
         # Read the current CSV file
-        print(f"Processing {file_name}...")
-        try:
-            df = pd.read_csv(file_path)
+        df = pd.read_csv(file_path)
+        
+        # Check if 'start_station_name' and 'end_station_name' columns exist
+        if {'start_station_name', 'end_station_name'}.issubset(df.columns):
+            # Filter rows where both start and end stations are in unique_stations
+            filtered_df = df[
+                df['start_station_name'].isin(unique_stations) & 
+                df['end_station_name'].isin(unique_stations)
+            ]
             
-            # Check if 'start_station_name' and 'end_station_name' columns exist
-            if 'start_station_name' in df.columns and 'end_station_name' in df.columns:
-                # Filter rows where both start and end stations are in unique_stations
-                filtered_df = df[
-                    df['start_station_name'].isin(unique_stations) & 
-                    df['end_station_name'].isin(unique_stations)
-                ]
-                
-                # Append the filtered DataFrame to the list
-                filtered_data.append(filtered_df)
-            else:
-                print(f"Missing required columns in {file_name}. Skipping.")
-        except Exception as e:
-            print(f"Error processing {file_name}: {e}")
+            # Append the filtered DataFrame to the list
+            filtered_data.append(filtered_df)
 
 # Combine all filtered DataFrames into one
 if filtered_data:
@@ -260,6 +292,8 @@ else:
     print("No data was filtered or no files were processed.")
 ```
 
+6.2.
+
 ```{python}
 #Quarterly
 
@@ -270,7 +304,11 @@ import pandas as pd
 folder_path = 'FinalProject_DDBB/divvy_data'
 
 # List of unique stations in Hyde Park
-unique_stations = ['Cornell Ave & Hyde Park Blvd', 'Griffin Museum of Science and Industry', 'Blackstone Ave & 59th St' 'Ellis Ave & 58th St', 'University Ave & 59th St','University Ave & 57th St', 'Ellis Ave & 53rd St','Lake Park Ave & 53rd St','Lake Park Ave & 56th St', 'Ellis Ave & 55th St','Harper Ave & 59th St','Woodlawn Ave & 55th St', 'Kimbark Ave & 53rd St','Woodlawn Ave & 58th St','Shore Dr & 55th St']
+unique_stations = ['Cornell Ave & Hyde Park Blvd', 'Griffin Museum of Science and Industry', 
+'Blackstone Ave & 59th St', 'Ellis Ave & 58th St', 'University Ave & 59th St','University Ave & 57th St', 
+'Ellis Ave & 53rd St','Lake Park Ave & 53rd St','Lake Park Ave & 56th St', 'Ellis Ave & 55th St',
+'Harper Ave & 59th St','Woodlawn Ave & 55th St', 'Kimbark Ave & 53rd St','Woodlawn Ave & 58th St',
+'Shore Dr & 55th St']
 
 # List to hold the filtered DataFrames
 filtered_data = []
@@ -282,24 +320,18 @@ for file_name in os.listdir(folder_path):
         file_path = os.path.join(folder_path, file_name)
         
         # Read the current CSV file
-        print(f"Processing {file_name}...")
-        try:
-            df = pd.read_csv(file_path)
+        df = pd.read_csv(file_path)
+        
+        # Check if 'from_station_name' and 'to_station_name' columns exist
+        if {'from_station_name', 'to_station_name'}.issubset(df.columns):
+            # Filter rows where both start and end stations are in unique_stations
+            filtered_df = df[
+                df['from_station_name'].isin(unique_stations) & 
+                df['to_station_name'].isin(unique_stations)
+            ]
             
-            # Check if 'from_station_name' and 'to_station_name' columns exist
-            if 'from_station_name' in df.columns and 'to_station_name' in df.columns:
-                # Filter rows where both start and end stations are in unique_stations
-                filtered_df = df[
-                    df['from_station_name'].isin(unique_stations) & 
-                    df['to_station_name'].isin(unique_stations)
-                ]
-                
-                # Append the filtered DataFrame to the list
-                filtered_data.append(filtered_df)
-            else:
-                print(f"Missing required columns in {file_name}. Skipping.")
-        except Exception as e:
-            print(f"Error processing {file_name}: {e}")
+            # Append the filtered DataFrame to the list
+            filtered_data.append(filtered_df)
 
 # Combine all filtered DataFrames into one
 if filtered_data:
@@ -313,6 +345,8 @@ else:
     print("No data was filtered or no files were processed.")
 ```
 
+6.3.
+
 ```{python}
 #Quarterly 2. Two of the data sets have different column names
 
@@ -323,7 +357,11 @@ import pandas as pd
 folder_path = 'FinalProject_DDBB/divvy_data'
 
 # List of unique stations in Hyde Park
-unique_stations = ['Cornell Ave & Hyde Park Blvd', 'Griffin Museum of Science and Industry', 'Blackstone Ave & 59th St' 'Ellis Ave & 58th St', 'University Ave & 59th St','University Ave & 57th St', 'Ellis Ave & 53rd St','Lake Park Ave & 53rd St','Lake Park Ave & 56th St', 'Ellis Ave & 55th St','Harper Ave & 59th St','Woodlawn Ave & 55th St', 'Kimbark Ave & 53rd St','Woodlawn Ave & 58th St','Shore Dr & 55th St']
+unique_stations = ['Cornell Ave & Hyde Park Blvd', 'Griffin Museum of Science and Industry', 
+'Blackstone Ave & 59th St', 'Ellis Ave & 58th St', 'University Ave & 59th St','University Ave & 57th St', 
+'Ellis Ave & 53rd St','Lake Park Ave & 53rd St','Lake Park Ave & 56th St', 'Ellis Ave & 55th St',
+'Harper Ave & 59th St','Woodlawn Ave & 55th St', 'Kimbark Ave & 53rd St','Woodlawn Ave & 58th St',
+'Shore Dr & 55th St']
 
 # List to hold the filtered DataFrames
 filtered_data = []
@@ -335,24 +373,18 @@ for file_name in os.listdir(folder_path):
         file_path = os.path.join(folder_path, file_name)
         
         # Read the current CSV file
-        print(f"Processing {file_name}...")
-        try:
-            df = pd.read_csv(file_path)
+        df = pd.read_csv(file_path)
+        
+        # Check if '03 - Rental Start Station Name' and '02 - Rental End Station Name' columns exist
+        if {'03 - Rental Start Station Name', '02 - Rental End Station Name}.issubset(df.columns):
+            # Filter rows where both start and end stations are in unique_stations
+            filtered_df = df[
+                df['03 - Rental Start Station Name'].isin(unique_stations) & 
+                df['02 - Rental End Station Name'].isin(unique_stations)
+            ]
             
-            # Check if '03 - Rental Start Station Name' and '02 - Rental End Station Name' columns exist
-            if '03 - Rental Start Station Name' in df.columns and '02 - Rental End Station Name' in df.columns:
-                # Filter rows where both start and end stations are in unique_stations
-                filtered_df = df[
-                    df['03 - Rental Start Station Name'].isin(unique_stations) & 
-                    df['02 - Rental End Station Name'].isin(unique_stations)
-                ]
-                
-                # Append the filtered DataFrame to the list
-                filtered_data.append(filtered_df)
-            else:
-                print(f"Missing required columns in {file_name}. Skipping.")
-        except Exception as e:
-            print(f"Error processing {file_name}: {e}")
+            # Append the filtered DataFrame to the list
+            filtered_data.append(filtered_df)
 
 # Combine all filtered DataFrames into one
 if filtered_data:
@@ -366,6 +398,7 @@ else:
     print("No data was filtered or no files were processed.")
 ```
 
+7. 
 
 ```{python}
 # Merge the Quarterly and Monthly data sets. Take a look at the names, but I will highlight the ones that we have to include in the merge (times and location)
@@ -410,7 +443,6 @@ quarterly_rides = pd.concat([quarterly_rides_dv, quarterly_rides_dv_2, monthly_r
 
 quarterly_rides['start_time'] = pd.to_datetime(quarterly_rides["start_time"], format='mixed')
 quarterly_rides["end_time"] = pd.to_datetime(quarterly_rides["end_time"], format='mixed')
-
 
 # Extract the year and month from the start_time
 quarterly_rides['year_month'] = quarterly_rides['start_time'].dt.strftime('%Y-%m')
