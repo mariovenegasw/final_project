@@ -118,10 +118,10 @@ bus_routes['year'] = bus_routes['date'].dt.year
 bus_routes['month'] = bus_routes['date'].dt.month
 
 # Group by year and month, and count rows
-observations_per_month = bus_routes.groupby(['year', 'month']).size().reset_index(name='count')
+ cta_grouped = cta_df.groupby(['route', 'date'])['rides'].sum().reset_index(name='rides') cta_grouped.to_csv('cta_seperate.csv' , index = False)
 
 # Display the result
-print(observations_per_month)
+print(cta_grouped)
 
 # The data is uploaded daily for each of the routes, this is why the count is twice as much as the days in each month. 
 
