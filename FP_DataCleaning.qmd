@@ -98,6 +98,8 @@ The benefit of visualizing the data with the lasagna plots in comparison to the 
 1.
 
 ```{python}
+# | echo: true 
+
 import pandas as pd
 import os
 import altair as alt
@@ -114,7 +116,7 @@ bus_routes['date'] = pd.to_datetime(bus_routes['date'])
 bus_routes = bus_routes[bus_routes['date'] >= '2018-01-01']
 
 # Display the first few rows
-print(bus_routes.head())
+bus_routes.head()
 
 # Number of of observations
 row_count = bus_routes.shape[0]
@@ -124,26 +126,21 @@ print(f"Number of rows: {row_count}")
 2. 
 
 ```{python}
-# Ensure 'date' is in datetime format
-bus_routes['date'] = pd.to_datetime(bus_routes['date'])
 
 # Extract year and month
 bus_routes['year'] = bus_routes['date'].dt.year
 bus_routes['month'] = bus_routes['date'].dt.month
 
 # Group by year and month, and count rows
-cta_grouped = cta_df.groupby(['route', 'date'])['rides'].sum().reset_index(name='rides') cta_grouped.to_csv('cta_seperate.csv' , index = False)
+cta_grouped = bus_routes.groupby(['route', 'date'])['rides'].sum().reset_index(name='rides') 
 
-# Display the result
-print(cta_grouped)
+# cta_grouped.to_csv('cta_seperate.csv' , index = False)
 
 # The data is uploaded daily for each of the routes, this is why the count is twice as much as the days in each month. 
 
 # Sort the filtered data by the 'date' column
 bus_routes = bus_routes.sort_values(by='date')
 
-# Display the sorted DataFrame
-print(bus_routes)
 ```
 
 3. 
@@ -151,10 +148,17 @@ print(bus_routes)
 ```{python}
 # Taking the above code block, finding the average for each month, from 2018 to 2024, and plotting this.
 
+
+cta_grouped["month"] = cta_grouped["date"].dt.month
+cta_grouped["year"] = cta_grouped["date"].dt.year
+
+cta_grouped = cta_grouped.groupby(["month", "year"])["rides"].sum().reset_index(name = "rides")
+
+
 average_ridership_list = []
-for month in range(1, 1 + len(observations_per_month["month"].unique())):
-    average_ridership = observations_per_month[observations_per_month["month"] == month]
-    average_ridership = average_ridership["count"].mean()
+for month in range(1, 1 + len(cta_grouped["month"].unique())):
+    average_ridership = cta_grouped[cta_grouped["month"] == month]
+    average_ridership = average_ridership["rides"].mean()
     average_ridership_list.append(round(average_ridership, 2))
 
 months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
@@ -169,14 +173,15 @@ bar_chart = alt.Chart(average_ridership_df).mark_bar().encode(
     y='monthly_avg_riders:Q',
 ).properties(
     width=800, 
-    height=400  
+    height=800  
 )
 
 
 # heatmap of month on x axis and year on y axis
-heatmap = alt.Chart(observations_per_month).mark_rect().encode(
+heatmap = alt.Chart(cta_grouped).mark_rect().encode(
     x=alt.X('month:O', title='Month', sort=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]),
     y=alt.Y('year:O', title='Year'), 
+    color = alt.Color("rides")
 ).properties(
     width=800,
     height=400
@@ -189,7 +194,7 @@ bar_chart | heatmap
 4. Divvy ridership
 
 ```{python}
-# Up to 2020, the information was uploaded quarterly, afer this, it started to be uploaded monthly. Before merging the data, it is necessary to explore the data bases. 
+# Up to 2020, the information was uploaded quarterly, after this, it started to be uploaded monthly. Before merging the data, it is necessary to explore the data bases. 
 
 # Quarterly data base:
 quarterly_sample = pd.read_csv('Divvy_Trips_2020_Q1.csv')
@@ -310,10 +315,6 @@ else:
 
 ```{python}
 #Quarterly
-
-import os
-import pandas as pd
-
 # Name the folder that contains all the quarterly and monthly information of divvy trips
 folder_path = 'FinalProject_DDBB/divvy_data'
 
@@ -364,9 +365,6 @@ else:
 ```{python}
 #Quarterly 2. Two of the data sets have different column names
 
-import os
-import pandas as pd
-
 # Name the folder that contains all the quarterly and monthly information of divvy trips
 folder_path = 'FinalProject_DDBB/divvy_data'
 
@@ -390,7 +388,7 @@ for file_name in os.listdir(folder_path):
         df = pd.read_csv(file_path)
         
         # Check if '03 - Rental Start Station Name' and '02 - Rental End Station Name' columns exist
-        if {'03 - Rental Start Station Name', '02 - Rental End Station Name}.issubset(df.columns):
+        if {'03 - Rental Start Station Name', '02 - Rental End Station Name'}.issubset(df.columns):
             # Filter rows where both start and end stations are in unique_stations
             filtered_df = df[
                 df['03 - Rental Start Station Name'].isin(unique_stations) & 
@@ -431,7 +429,6 @@ print(quarterly_rides_dv_2.columns)
 
 8. 
 ```{python}
-""" Daniel """
 # merging the quarterly data into one concat'd dataset
 
 #creating dictionaries to prepare for renaming columns in relevant datasets.
@@ -497,8 +494,6 @@ lasagna2020 =  alt.Chart(rides_per_station_per_month_2020).mark_rect().encode(
     height=400,
     title="Monthly Divvy Rides per Station post Covid, Hyde Park"
 )
-
-lasagna2017 | lasagna2020
 ```
 
 10. 
