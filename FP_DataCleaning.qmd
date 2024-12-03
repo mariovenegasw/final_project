@@ -153,23 +153,37 @@ bus_routes = bus_routes.sort_values(by='date')
 ```{python}
 # Taking the above code block, finding the average for each month, from 2018 to 2024, and plotting this.
 
+months = {
+    1: "January", 
+    2: "February", 
+    3: "March",
+    4: "April",
+    5: "May",
+    6: "June",
+    7: "July",
+    8: "August",
+    9: "September",
+    10: "October", 
+    11: "November",
+    12: "December"}
 
 cta_grouped["month"] = cta_grouped["date"].dt.month
 cta_grouped["year"] = cta_grouped["date"].dt.year
 
 cta_grouped = cta_grouped.groupby(["month", "year"])["rides"].sum().reset_index(name = "rides")
+cta_grouped["month"] = cta_grouped["month"].apply(lambda x: months[x])
 
 
 average_ridership_list = []
-for month in range(1, 1 + len(cta_grouped["month"].unique())):
+months_list = []
+for month in cta_grouped["month"].unique():
     average_ridership = cta_grouped[cta_grouped["month"] == month]
     average_ridership = average_ridership["rides"].mean()
     average_ridership_list.append(round(average_ridership, 2))
-
-months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+    months_list.append(month)
 
 average_ridership_df = pd.DataFrame({"monthly_avg_riders": average_ridership_list,
-                                     "month": months})
+                                     "month": months_list})
 
 
 # making the bar graph
@@ -184,7 +198,7 @@ bar_chart = alt.Chart(average_ridership_df).mark_bar().encode(
 
 # heatmap of month on x axis and year on y axis
 heatmap = alt.Chart(cta_grouped).mark_rect().encode(
-    x=alt.X('month:O', title='Month', sort=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]),
+    x=alt.X('month:N', title='Month', sort=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]),
     y=alt.Y('year:O', title='Year'), 
     color = alt.Color("rides")
 ).properties(
