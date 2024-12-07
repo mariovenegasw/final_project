@@ -21,40 +21,6 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
-/* CSS for syntax highlighting */
-pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { line-height: 1.25; }
-pre > code.sourceCode > span:empty { height: 1.2em; }
-.sourceCode { overflow: visible; }
-code.sourceCode > span { color: inherit; text-decoration: inherit; }
-div.sourceCode { margin: 1em 0; }
-pre.sourceCode { margin: 0; }
-@media screen {
-div.sourceCode { overflow: auto; }
-}
-@media print {
-pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
-}
-pre.numberSource code
-  { counter-reset: source-line 0; }
-pre.numberSource code > span
-  { position: relative; left: -4em; counter-increment: source-line; }
-pre.numberSource code > span > a:first-child::before
-  { content: counter(source-line);
-    position: relative; left: -1em; text-align: right; vertical-align: baseline;
-    border: none; display: inline-block;
-    -webkit-touch-callout: none; -webkit-user-select: none;
-    -khtml-user-select: none; -moz-user-select: none;
-    -ms-user-select: none; user-select: none;
-    padding: 0 4px; width: 4em;
-  }
-pre.numberSource { margin-left: 3em;  padding-left: 4px; }
-div.sourceCode
-  {   }
-@media screen {
-pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
-}
 </style>
 
 
@@ -115,135 +81,49 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
+<p>This work analyses the use of public transportation within Hyde Park in Chicago. As a large proportion of the people in Hyde Park are students of the University of Chicago, this analysis uses Divvy Bike and CTA bus data to define recommendations around changes the use of services by the University given the preferences and demands of students during different times of the year. For the analysis, the team used two main sources of data:</p>
+<ul>
+<li>CTA Ridership, Daily Boarding Totals: This dataset shows systemwide boardings for both bus and rail services provided by CTA, dating back to 2001.</li>
+<li>Divvy Trip History Data: Divvy oOers quarterly and monthly datasets of every trip taken since 2018.</li>
+</ul>
+<p>This data had to be cleaned and limited to (a.) the time period of interest (2018- 2023, which were selected based on the availability of data from Divvy), and (b.) the neighborhood of interest, Hyde Park. As part of our analysis, after the data was cleaned, the team made graphs to visualize our output. Finally, the team made a dashboard that enables policy makers to visualize this information for particular timeframes. The steps followed for this are enumerated below. Each number corresponds to a chunk in the coding section of the document.</p>
 <p>Note: some chuncks were commeneted out because of the size of the files which cannot be pushed to the repo, all files are included in a Drive link</p>
 <p><strong><a href="https://drive.google.com/drive/u/0/folders/1q9t4VtaZ1b81MvYmoRcrrbEFFR_3E8qz">Drive</a></strong></p>
 <section id="cta-routes-data" class="level2">
 <h2 class="anchored" data-anchor-id="cta-routes-data">CTA Routes Data</h2>
 <ol type="1">
-<li></li>
+<li>As mentioned above, the data base from the CTA includes information dating back to 2001, and for every bus route of the CTA in Chicago. The coding shows the steps to limit the information to bus routes 171 and 172 - which operate only in Hyde Park, and to observations corresponding to 2018 onwards.</li>
 </ol>
-<div id="0c3f76dd" class="cell" data-execution_count="1">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> altair <span class="im">as</span> alt</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>bus_routes <span class="op">=</span> pd.read_csv(<span class="st">'data/cta_br.csv'</span>)</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Restrict the data to routes 171 and 172</span></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>bus_routes <span class="op">=</span> bus_routes[bus_routes[<span class="st">'route'</span>].isin([<span class="st">'171'</span>, <span class="st">'172'</span>])].copy()</span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="co"># From 2018 onwards</span></span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>bus_routes[<span class="st">'date'</span>] <span class="op">=</span> pd.to_datetime(bus_routes[<span class="st">'date'</span>])</span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>bus_routes <span class="op">=</span> bus_routes[bus_routes[<span class="st">'date'</span>] <span class="op">&gt;=</span> <span class="st">'2018-01-01'</span>]</span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Display the first few rows</span></span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>bus_routes.head()</span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Number of of observations</span></span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>row_count <span class="op">=</span> bus_routes.shape[<span class="dv">0</span>]</span>
-<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Number of rows: </span><span class="sc">{</span>row_count<span class="sc">}</span><span class="ss">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="b0d14fdc" class="cell" data-execution_count="1">
 <div class="cell-output cell-output-stdout">
 <pre><code>Number of rows: 4366</code></pre>
 </div>
 </div>
 <ol start="2" type="1">
-<li></li>
+<li><p>After the step above, the CTA data included information for each day from 2018 to 2023. However, due to the fact that the analysis seeks to determine the demand by time of the year, the team decided to group the data by year and month.</p></li>
+<li><p>This code block creates a list that captures the average number of rides on a monthly basis across all years from the previous observations_per_month variable. We then create a data frame that matches the months with the average monthly observations, and plot this into a bar chart. Finally, we use the same data to create a heatmap, however the heatmap is created where the X axis is the month, and the Y axis is a year, which means that each cell is a unique month of each year. By observing the year-month, we can clearly visualize the seasonal pattern of ridership in the data on an annual basis.</p></li>
 </ol>
-<div id="c219ed80" class="cell" data-execution_count="2">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract year and month</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>bus_routes[<span class="st">'year'</span>] <span class="op">=</span> bus_routes[<span class="st">'date'</span>].dt.year</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>bus_routes[<span class="st">'month'</span>] <span class="op">=</span> bus_routes[<span class="st">'date'</span>].dt.month</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Group by year and month, and count rows</span></span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>cta_grouped <span class="op">=</span> bus_routes.groupby([<span class="st">'route'</span>, <span class="st">'date'</span>])[<span class="st">'rides'</span>].<span class="bu">sum</span>().reset_index(name<span class="op">=</span><span class="st">'rides'</span>) </span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="co"># The data is uploaded daily for each of the routes, this is why the count is twice as much as the days in each month. </span></span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Sort the filtered data by the 'date' column</span></span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>bus_routes <span class="op">=</span> bus_routes.sort_values(by<span class="op">=</span><span class="st">'date'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<ol start="3" type="1">
-<li></li>
-</ol>
-<div id="293cb4de" class="cell" data-execution_count="3">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Taking the above code block, finding the average for each month, from 2018 to 2024, and plotting this.</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>months <span class="op">=</span> {</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    <span class="dv">1</span>: <span class="st">"January"</span>, </span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="dv">2</span>: <span class="st">"February"</span>, </span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="dv">3</span>: <span class="st">"March"</span>,</span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    <span class="dv">4</span>: <span class="st">"April"</span>,</span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    <span class="dv">5</span>: <span class="st">"May"</span>,</span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>    <span class="dv">6</span>: <span class="st">"June"</span>,</span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>    <span class="dv">7</span>: <span class="st">"July"</span>,</span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>    <span class="dv">8</span>: <span class="st">"August"</span>,</span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>    <span class="dv">9</span>: <span class="st">"September"</span>,</span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>    <span class="dv">10</span>: <span class="st">"October"</span>, </span>
-<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>    <span class="dv">11</span>: <span class="st">"November"</span>,</span>
-<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>    <span class="dv">12</span>: <span class="st">"December"</span>}</span>
-<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>cta_grouped[<span class="st">"month"</span>] <span class="op">=</span> cta_grouped[<span class="st">"date"</span>].dt.month</span>
-<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>cta_grouped[<span class="st">"year"</span>] <span class="op">=</span> cta_grouped[<span class="st">"date"</span>].dt.year</span>
-<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>cta_grouped <span class="op">=</span> cta_grouped.groupby([<span class="st">"month"</span>, <span class="st">"year"</span>])[<span class="st">"rides"</span>].<span class="bu">sum</span>().reset_index(name <span class="op">=</span> <span class="st">"rides"</span>)</span>
-<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>cta_grouped[<span class="st">"month"</span>] <span class="op">=</span> cta_grouped[<span class="st">"month"</span>].<span class="bu">apply</span>(<span class="kw">lambda</span> x: months[x])</span>
-<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>average_ridership_list <span class="op">=</span> []</span>
-<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>months_list <span class="op">=</span> []</span>
-<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> month <span class="kw">in</span> cta_grouped[<span class="st">"month"</span>].unique():</span>
-<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a>    average_ridership <span class="op">=</span> cta_grouped[cta_grouped[<span class="st">"month"</span>] <span class="op">==</span> month]</span>
-<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>    average_ridership <span class="op">=</span> average_ridership[<span class="st">"rides"</span>].mean()</span>
-<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a>    average_ridership_list.append(<span class="bu">round</span>(average_ridership, <span class="dv">2</span>))</span>
-<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a>    months_list.append(month)</span>
-<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a>average_ridership_df <span class="op">=</span> pd.DataFrame({<span class="st">"monthly_avg_riders"</span>: average_ridership_list,</span>
-<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a>                                     <span class="st">"month"</span>: months_list})</span>
-<span id="cb4-34"><a href="#cb4-34" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-35"><a href="#cb4-35" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-36"><a href="#cb4-36" aria-hidden="true" tabindex="-1"></a><span class="co"># making the bar graph</span></span>
-<span id="cb4-37"><a href="#cb4-37" aria-hidden="true" tabindex="-1"></a>bar_chart <span class="op">=</span> alt.Chart(average_ridership_df).mark_bar().encode(</span>
-<span id="cb4-38"><a href="#cb4-38" aria-hidden="true" tabindex="-1"></a>    x<span class="op">=</span>alt.X(<span class="st">'month:N'</span>, sort<span class="op">=</span>[<span class="st">'January'</span>, <span class="st">'February'</span>, <span class="st">'March'</span>, <span class="st">'April'</span>, <span class="st">'May'</span>, <span class="st">'June'</span>, <span class="st">'July'</span>, </span>
-<span id="cb4-39"><a href="#cb4-39" aria-hidden="true" tabindex="-1"></a>    <span class="st">'August'</span>, <span class="st">'September'</span>, <span class="st">'October'</span>, <span class="st">'November'</span>, <span class="st">'December'</span>]),  </span>
-<span id="cb4-40"><a href="#cb4-40" aria-hidden="true" tabindex="-1"></a>    y<span class="op">=</span><span class="st">'monthly_avg_riders:Q'</span>,</span>
-<span id="cb4-41"><a href="#cb4-41" aria-hidden="true" tabindex="-1"></a>).properties(</span>
-<span id="cb4-42"><a href="#cb4-42" aria-hidden="true" tabindex="-1"></a>    width<span class="op">=</span><span class="dv">800</span>, </span>
-<span id="cb4-43"><a href="#cb4-43" aria-hidden="true" tabindex="-1"></a>    height<span class="op">=</span><span class="dv">400</span>  </span>
-<span id="cb4-44"><a href="#cb4-44" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb4-45"><a href="#cb4-45" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-46"><a href="#cb4-46" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-47"><a href="#cb4-47" aria-hidden="true" tabindex="-1"></a><span class="co"># heatmap of month on x axis and year on y axis</span></span>
-<span id="cb4-48"><a href="#cb4-48" aria-hidden="true" tabindex="-1"></a>heatmap <span class="op">=</span> alt.Chart(cta_grouped).mark_rect().encode(</span>
-<span id="cb4-49"><a href="#cb4-49" aria-hidden="true" tabindex="-1"></a>    x<span class="op">=</span>alt.X(<span class="st">'month:N'</span>, title<span class="op">=</span><span class="st">'Month'</span>),</span>
-<span id="cb4-50"><a href="#cb4-50" aria-hidden="true" tabindex="-1"></a>    y<span class="op">=</span>alt.Y(<span class="st">'year:O'</span>, title<span class="op">=</span><span class="st">'Year'</span>), </span>
-<span id="cb4-51"><a href="#cb4-51" aria-hidden="true" tabindex="-1"></a>    color <span class="op">=</span> alt.Color(<span class="st">"rides"</span>)</span>
-<span id="cb4-52"><a href="#cb4-52" aria-hidden="true" tabindex="-1"></a>).properties(</span>
-<span id="cb4-53"><a href="#cb4-53" aria-hidden="true" tabindex="-1"></a>    width<span class="op">=</span><span class="dv">800</span>,</span>
-<span id="cb4-54"><a href="#cb4-54" aria-hidden="true" tabindex="-1"></a>    height<span class="op">=</span><span class="dv">400</span></span>
-<span id="cb4-55"><a href="#cb4-55" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb4-56"><a href="#cb4-56" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-57"><a href="#cb4-57" aria-hidden="true" tabindex="-1"></a>bar_chart <span class="op">|</span> heatmap</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="33">
+<div id="f9d67835" class="cell" data-execution_count="3">
+<div class="cell-output cell-output-display" data-execution_count="31">
 
 <style>
-  #altair-viz-e0f23c7de2074037a896463def5deaea.vega-embed {
+  #altair-viz-b49d28ebf6394b9c8f0a2917953ba6c7.vega-embed {
     width: 100%;
     display: flex;
   }
 
-  #altair-viz-e0f23c7de2074037a896463def5deaea.vega-embed details,
-  #altair-viz-e0f23c7de2074037a896463def5deaea.vega-embed details summary {
+  #altair-viz-b49d28ebf6394b9c8f0a2917953ba6c7.vega-embed details,
+  #altair-viz-b49d28ebf6394b9c8f0a2917953ba6c7.vega-embed details summary {
     position: relative;
   }
 </style>
-<div id="altair-viz-e0f23c7de2074037a896463def5deaea"></div>
+<div id="altair-viz-b49d28ebf6394b9c8f0a2917953ba6c7"></div>
 <script type="text/javascript">
   var VEGA_DEBUG = (typeof VEGA_DEBUG == "undefined") ? {} : VEGA_DEBUG;
   (function(spec, embedOpt){
     let outputDiv = document.currentScript.previousElementSibling;
-    if (outputDiv.id !== "altair-viz-e0f23c7de2074037a896463def5deaea") {
-      outputDiv = document.getElementById("altair-viz-e0f23c7de2074037a896463def5deaea");
+    if (outputDiv.id !== "altair-viz-b49d28ebf6394b9c8f0a2917953ba6c7") {
+      outputDiv = document.getElementById("altair-viz-b49d28ebf6394b9c8f0a2917953ba6c7");
     }
     const paths = {
       "vega": "https://cdn.jsdelivr.net/npm/vega@5?noext",
@@ -294,280 +174,37 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 <ol start="4" type="1">
-<li>Divvy ridership</li>
+<li>The information provided by Divvy regarding every ride taken in Chicago was uploaded quarterly from 2018-2020 and monthly from 2021-2023. In addition, the names of the columns included in the data bases changed at some point. This chunk explores the diOerences between each data base, monthly dissemination and quarterly dissemination.</li>
 </ol>
-<p><strong>This chunck was commented out and all data can be found on Drive</strong></p>
-<div id="43401e68" class="cell" data-execution_count="4">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">'''</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Up to 2020, the information was uploaded quarterly, after this, it started to be uploaded monthly. Before merging the data, it is necessary to explore the data bases. All these data sets are included in the divy_data folder in the Drive</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Quarterly data base:</span></span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="co">quarterly_sample = pd.read_csv('divvy_data/Divvy_Trips_2020_Q1.csv')</span></span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="co">print(quarterly_sample.head())</span></span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Monthly data base:</span></span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="co">monthly_sample = pd.read_csv('divvy_data/202004-divvy-tripdata.csv')</span></span>
-<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a><span class="co">print(monthly_sample.head())</span></span>
-<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a><span class="co">'''</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
 </section>
 <section id="divvy-and-spatial-data" class="level2">
 <h2 class="anchored" data-anchor-id="divvy-and-spatial-data">Divvy and Spatial Data</h2>
 <ol start="5" type="1">
-<li></li>
+<li>In addition, the Divvy data includes information for every trip made in Chicago city limits. The data had to be cleaned to include information for Divvy docking stations in Hyde Park only. To identify these docking stations the team used the following data bases:</li>
 </ol>
-<div id="fc27f938" class="cell" data-execution_count="5">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> geopandas <span class="im">as</span> gpd</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> shapely.geometry <span class="im">import</span> shape, Point</span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Data base containing geometry information about Chicago</span></span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>chicago_areas <span class="op">=</span> pd.read_csv(<span class="st">'data/chicago_areas.csv'</span>) </span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Data base containing geographic information of Divvy docking stations</span></span>
-<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>stations_gdf <span class="op">=</span> gpd.read_file(<span class="st">'Divvy stations/divvy_stations.shp'</span>) </span>
-<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Ensure the shapefile has a valid CRS</span></span>
-<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>stations_gdf <span class="op">=</span> stations_gdf.to_crs(<span class="st">"EPSG:4326"</span>) </span>
-<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Convert the geometry column in chicago_areas to shapely geometry to make it compatible with the station_gdf df. </span></span>
-<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> shapely.wkt <span class="im">import</span> loads</span>
-<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Convert the 'geometry' column to actual shapely geometry</span></span>
-<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>chicago_areas[<span class="st">'the_geom'</span>] <span class="op">=</span> chicago_areas[<span class="st">'the_geom'</span>].<span class="bu">apply</span>(loads)</span>
-<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a><span class="co"># Convert to a GeoDataFrame</span></span>
-<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>chicago_areas <span class="op">=</span> gpd.GeoDataFrame(chicago_areas, geometry<span class="op">=</span><span class="st">'the_geom'</span>, crs<span class="op">=</span><span class="st">"EPSG:4326"</span>)</span>
-<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a><span class="co"># Limit geographic location to Hyde Park</span></span>
-<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a>hyde_park <span class="op">=</span> chicago_areas[chicago_areas[<span class="st">'COMMUNITY'</span>] <span class="op">==</span> <span class="st">'HYDE PARK'</span>]</span>
-<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a><span class="co"># Perform spatial joint to print the name of the Divvy Stations in Hyde Park</span></span>
-<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-30"><a href="#cb6-30" aria-hidden="true" tabindex="-1"></a><span class="co"># Ensure both GeoDataFrames have the same CRS</span></span>
-<span id="cb6-31"><a href="#cb6-31" aria-hidden="true" tabindex="-1"></a>stations_gdf <span class="op">=</span> stations_gdf.to_crs(hyde_park.crs)</span>
-<span id="cb6-32"><a href="#cb6-32" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-33"><a href="#cb6-33" aria-hidden="true" tabindex="-1"></a><span class="co"># Perform spatial join</span></span>
-<span id="cb6-34"><a href="#cb6-34" aria-hidden="true" tabindex="-1"></a>stations_in_hp <span class="op">=</span> gpd.sjoin(stations_gdf, hyde_park, predicate<span class="op">=</span><span class="st">'within'</span>)</span>
-<span id="cb6-35"><a href="#cb6-35" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-36"><a href="#cb6-36" aria-hidden="true" tabindex="-1"></a><span class="co"># Print the name of the bike stations</span></span>
-<span id="cb6-37"><a href="#cb6-37" aria-hidden="true" tabindex="-1"></a>unique_stations <span class="op">=</span> stations_in_hp[<span class="st">'station_na'</span>].unique()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
+<ul>
+<li>chicago_areas. This data base from the Chicago City Government includes geometric coordinates for each area in Chicago.</li>
+<li>divvy_stations. This shape data base from the City of Chicago includes the geographic coordinates and names of every Divvy docking station in the city. The general steps followed to identify the docking stations in Hyde Park using this information were the following:</li>
+<li>Convert the geometry column in chicago_areas to shapely geometry to make it compatible with the station_gdf, mwhich contained the geographic information of divvy docking stations.</li>
+<li>Limit geographic location to Hyde Park.</li>
+<li>Perform spatial joint to print the name of the Divvy Stations in Hyde Park.</li>
+</ul>
 <ol start="6" type="1">
-<li></li>
+<li>Once the names of the stations in Hyde Park were identified, the team used them to limit the observations in the Divvy data sets to trips that started and ended in Hyde Park. This makes the analysis more comparable to the use of routes 171 and 172, which only operate inside Hyde Park. Since the information was provided in data sets with different column format, the team had to do three different scraping codes from a folder containing all data bases uploaded by Divvy. The code cleans each of the data sets from Divvy so they only include trips that started and ended in docking stations identified within Hyde Park. Once all the data bases were cleaned, they were concatenated into a single file. Chunks 6.1, 6.2, and 6.3 show the process described above for the three column formats identified.</li>
 </ol>
 <p>6.1.</p>
 <p><strong>This chunk was commented out to speed up the knitting process, large files found on Drive</strong></p>
-<div id="57696ac4" class="cell" data-execution_count="6">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co">'''</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="co">#Monthly_data</span></span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Name the folder that contains all the quarterly and monthly information of divvy trips</span></span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="co">folder_path = 'divvy_data'</span></span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="co"># List of unique stations in Hyde Park</span></span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="co">unique_stations = ['Cornell Ave &amp; Hyde Park Blvd', 'Griffin Museum of Science and Industry', </span></span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a><span class="co">'Blackstone Ave &amp; 59th St' 'Ellis Ave &amp; 58th St', 'University Ave &amp; 59th St','University Ave &amp; 57th St', </span></span>
-<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="co">'Ellis Ave &amp; 53rd St','Lake Park Ave &amp; 53rd St','Lake Park Ave &amp; 56th St', 'Ellis Ave &amp; 55th St',</span></span>
-<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a><span class="co">'Harper Ave &amp; 59th St','Woodlawn Ave &amp; 55th St', 'Kimbark Ave &amp; 53rd St','Woodlawn Ave &amp; 58th St',</span></span>
-<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a><span class="co">'Shore Dr &amp; 55th St']</span></span>
-<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a><span class="co"># List to hold the filtered DataFrames</span></span>
-<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a><span class="co">filtered_data = []</span></span>
-<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Loop through all files in the folder</span></span>
-<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a><span class="co">for file_name in os.listdir(folder_path):</span></span>
-<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a><span class="co">    # Ensure only CSV files are processed</span></span>
-<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a><span class="co">    if file_name.endswith('.csv'):</span></span>
-<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a><span class="co">        file_path = os.path.join(folder_path, file_name)</span></span>
-<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a><span class="co">        </span></span>
-<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a><span class="co">        # Read the current CSV file</span></span>
-<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a><span class="co">        df = pd.read_csv(file_path)</span></span>
-<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a><span class="co">        </span></span>
-<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a><span class="co">        # Check if 'start_station_name' and 'end_station_name' columns exist</span></span>
-<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a><span class="co">        if {'start_station_name', 'end_station_name'}.issubset(df.columns):</span></span>
-<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a><span class="co">            # Filter rows where both start and end stations are in unique_stations</span></span>
-<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a><span class="co">            filtered_df = df[</span></span>
-<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a><span class="co">                df['start_station_name'].isin(unique_stations) &amp; </span></span>
-<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a><span class="co">                df['end_station_name'].isin(unique_stations)</span></span>
-<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a><span class="co">            ]</span></span>
-<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a><span class="co">            </span></span>
-<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a><span class="co">            # Append the filtered DataFrame to the list</span></span>
-<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a><span class="co">            filtered_data.append(filtered_df)</span></span>
-<span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a><span class="co"># Combine all filtered DataFrames into one</span></span>
-<span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a><span class="co">if filtered_data:</span></span>
-<span id="cb7-39"><a href="#cb7-39" aria-hidden="true" tabindex="-1"></a><span class="co">    monthly_divvy_df = pd.concat(filtered_data, ignore_index=True)</span></span>
-<span id="cb7-40"><a href="#cb7-40" aria-hidden="true" tabindex="-1"></a><span class="co">    print("All files have been processed and merged.")</span></span>
-<span id="cb7-41"><a href="#cb7-41" aria-hidden="true" tabindex="-1"></a><span class="co">    </span></span>
-<span id="cb7-42"><a href="#cb7-42" aria-hidden="true" tabindex="-1"></a><span class="co">    # Save the final merged DataFrame to a new CSV</span></span>
-<span id="cb7-43"><a href="#cb7-43" aria-hidden="true" tabindex="-1"></a><span class="co">    monthly_divvy_df.to_csv('Monthly_Bike_Trips.csv', index=False)</span></span>
-<span id="cb7-44"><a href="#cb7-44" aria-hidden="true" tabindex="-1"></a><span class="co">    print("Filtered data saved to 'Monthly_Bike_Trips.csv'.")</span></span>
-<span id="cb7-45"><a href="#cb7-45" aria-hidden="true" tabindex="-1"></a><span class="co">else:</span></span>
-<span id="cb7-46"><a href="#cb7-46" aria-hidden="true" tabindex="-1"></a><span class="co">    print("No data was filtered or no files were processed.")</span></span>
-<span id="cb7-47"><a href="#cb7-47" aria-hidden="true" tabindex="-1"></a><span class="co">'''</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
 <p>6.2.</p>
 <p><strong>This chunk was commented out to speed up the knitting process, large files found on Drive</strong></p>
-<div id="b72047f9" class="cell" data-execution_count="7">
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co">'''</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="co">#Quarterly</span></span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Name the folder that contains all the quarterly and monthly information of divvy trips</span></span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="co">folder_path = 'divvy_data'</span></span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="co"># List of unique stations in Hyde Park</span></span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="co">unique_stations = ['Cornell Ave &amp; Hyde Park Blvd', 'Griffin Museum of Science and Industry', </span></span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="co">'Blackstone Ave &amp; 59th St', 'Ellis Ave &amp; 58th St', 'University Ave &amp; 59th St','University Ave &amp; 57th St', </span></span>
-<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="co">'Ellis Ave &amp; 53rd St','Lake Park Ave &amp; 53rd St','Lake Park Ave &amp; 56th St', 'Ellis Ave &amp; 55th St',</span></span>
-<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a><span class="co">'Harper Ave &amp; 59th St','Woodlawn Ave &amp; 55th St', 'Kimbark Ave &amp; 53rd St','Woodlawn Ave &amp; 58th St',</span></span>
-<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a><span class="co">'Shore Dr &amp; 55th St']</span></span>
-<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a><span class="co"># List to hold the filtered DataFrames</span></span>
-<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a><span class="co">filtered_data = []</span></span>
-<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Loop through all files in the folder</span></span>
-<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a><span class="co">for file_name in os.listdir(folder_path):</span></span>
-<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a><span class="co">    # Ensure only CSV files are processed</span></span>
-<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a><span class="co">    if file_name.endswith('.csv'):</span></span>
-<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a><span class="co">        file_path = os.path.join(folder_path, file_name)</span></span>
-<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a><span class="co">        </span></span>
-<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a><span class="co">        # Read the current CSV file</span></span>
-<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a><span class="co">        df = pd.read_csv(file_path)</span></span>
-<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a><span class="co">        </span></span>
-<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a><span class="co">        # Check if 'from_station_name' and 'to_station_name' columns exist</span></span>
-<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a><span class="co">        if {'from_station_name', 'to_station_name'}.issubset(df.columns):</span></span>
-<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a><span class="co">            # Filter rows where both start and end stations are in unique_stations</span></span>
-<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a><span class="co">            filtered_df = df[</span></span>
-<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a><span class="co">                df['from_station_name'].isin(unique_stations) &amp; </span></span>
-<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a><span class="co">                df['to_station_name'].isin(unique_stations)</span></span>
-<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a><span class="co">            ]</span></span>
-<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a><span class="co">            </span></span>
-<span id="cb8-33"><a href="#cb8-33" aria-hidden="true" tabindex="-1"></a><span class="co">            # Append the filtered DataFrame to the list</span></span>
-<span id="cb8-34"><a href="#cb8-34" aria-hidden="true" tabindex="-1"></a><span class="co">            filtered_data.append(filtered_df)</span></span>
-<span id="cb8-35"><a href="#cb8-35" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-36"><a href="#cb8-36" aria-hidden="true" tabindex="-1"></a><span class="co"># Combine all filtered DataFrames into one</span></span>
-<span id="cb8-37"><a href="#cb8-37" aria-hidden="true" tabindex="-1"></a><span class="co">if filtered_data:</span></span>
-<span id="cb8-38"><a href="#cb8-38" aria-hidden="true" tabindex="-1"></a><span class="co">    divvy_df = pd.concat(filtered_data, ignore_index=True)</span></span>
-<span id="cb8-39"><a href="#cb8-39" aria-hidden="true" tabindex="-1"></a><span class="co">    print("All files have been processed and merged.")</span></span>
-<span id="cb8-40"><a href="#cb8-40" aria-hidden="true" tabindex="-1"></a><span class="co">    </span></span>
-<span id="cb8-41"><a href="#cb8-41" aria-hidden="true" tabindex="-1"></a><span class="co">    # Save the final merged DataFrame to a new CSV</span></span>
-<span id="cb8-42"><a href="#cb8-42" aria-hidden="true" tabindex="-1"></a><span class="co">    divvy_df.to_csv('Quarterly_Bike_Trips.csv', index=False)</span></span>
-<span id="cb8-43"><a href="#cb8-43" aria-hidden="true" tabindex="-1"></a><span class="co">    print("Filtered data saved to 'Quarterly_Bike_Trips.csv'.")</span></span>
-<span id="cb8-44"><a href="#cb8-44" aria-hidden="true" tabindex="-1"></a><span class="co">else:</span></span>
-<span id="cb8-45"><a href="#cb8-45" aria-hidden="true" tabindex="-1"></a><span class="co">    print("No data was filtered or no files were processed.")</span></span>
-<span id="cb8-46"><a href="#cb8-46" aria-hidden="true" tabindex="-1"></a><span class="co">'''</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
 <p>6.3.</p>
 <p><strong>This chunk was commented out to speed up the knitting process, large files found on Drive</strong></p>
-<div id="53e97d2b" class="cell" data-execution_count="8">
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co">'''</span></span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="co">#Quarterly 2. Two of the data sets have different column names</span></span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Name the folder that contains all the quarterly and monthly information of divvy trips</span></span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="co">folder_path = 'divvy_data'</span></span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="co"># List of unique stations in Hyde Park</span></span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="co">unique_stations = ['Cornell Ave &amp; Hyde Park Blvd', 'Griffin Museum of Science and Industry', </span></span>
-<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a><span class="co">'Blackstone Ave &amp; 59th St', 'Ellis Ave &amp; 58th St', 'University Ave &amp; 59th St','University Ave &amp; 57th St', </span></span>
-<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a><span class="co">'Ellis Ave &amp; 53rd St','Lake Park Ave &amp; 53rd St','Lake Park Ave &amp; 56th St', 'Ellis Ave &amp; 55th St',</span></span>
-<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a><span class="co">'Harper Ave &amp; 59th St','Woodlawn Ave &amp; 55th St', 'Kimbark Ave &amp; 53rd St','Woodlawn Ave &amp; 58th St',</span></span>
-<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a><span class="co">'Shore Dr &amp; 55th St']</span></span>
-<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a><span class="co"># List to hold the filtered DataFrames</span></span>
-<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a><span class="co">filtered_data = []</span></span>
-<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Loop through all files in the folder</span></span>
-<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a><span class="co">for file_name in os.listdir(folder_path):</span></span>
-<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a><span class="co">    # Ensure only CSV files are processed</span></span>
-<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a><span class="co">    if file_name.endswith('.csv'):</span></span>
-<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a><span class="co">        file_path = os.path.join(folder_path, file_name)</span></span>
-<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a><span class="co">        </span></span>
-<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a><span class="co">        # Read the current CSV file</span></span>
-<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a><span class="co">        df = pd.read_csv(file_path)</span></span>
-<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a><span class="co">        </span></span>
-<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a><span class="co">        # Check if '03 - Rental Start Station Name' and '02 - Rental End Station Name' columns exist</span></span>
-<span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a><span class="co">        if {'03 - Rental Start Station Name', '02 - Rental End Station Name'}.issubset(df.columns):</span></span>
-<span id="cb9-28"><a href="#cb9-28" aria-hidden="true" tabindex="-1"></a><span class="co">            # Filter rows where both start and end stations are in unique_stations</span></span>
-<span id="cb9-29"><a href="#cb9-29" aria-hidden="true" tabindex="-1"></a><span class="co">            filtered_df = df[</span></span>
-<span id="cb9-30"><a href="#cb9-30" aria-hidden="true" tabindex="-1"></a><span class="co">                df['03 - Rental Start Station Name'].isin(unique_stations) &amp; </span></span>
-<span id="cb9-31"><a href="#cb9-31" aria-hidden="true" tabindex="-1"></a><span class="co">                df['02 - Rental End Station Name'].isin(unique_stations)</span></span>
-<span id="cb9-32"><a href="#cb9-32" aria-hidden="true" tabindex="-1"></a><span class="co">            ]</span></span>
-<span id="cb9-33"><a href="#cb9-33" aria-hidden="true" tabindex="-1"></a><span class="co">            </span></span>
-<span id="cb9-34"><a href="#cb9-34" aria-hidden="true" tabindex="-1"></a><span class="co">            # Append the filtered DataFrame to the list</span></span>
-<span id="cb9-35"><a href="#cb9-35" aria-hidden="true" tabindex="-1"></a><span class="co">            filtered_data.append(filtered_df)</span></span>
-<span id="cb9-36"><a href="#cb9-36" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-37"><a href="#cb9-37" aria-hidden="true" tabindex="-1"></a><span class="co"># Combine all filtered DataFrames into one</span></span>
-<span id="cb9-38"><a href="#cb9-38" aria-hidden="true" tabindex="-1"></a><span class="co">if filtered_data:</span></span>
-<span id="cb9-39"><a href="#cb9-39" aria-hidden="true" tabindex="-1"></a><span class="co">    divvy_df = pd.concat(filtered_data, ignore_index=True)</span></span>
-<span id="cb9-40"><a href="#cb9-40" aria-hidden="true" tabindex="-1"></a><span class="co">    print("All files have been processed and merged.")</span></span>
-<span id="cb9-41"><a href="#cb9-41" aria-hidden="true" tabindex="-1"></a><span class="co">    </span></span>
-<span id="cb9-42"><a href="#cb9-42" aria-hidden="true" tabindex="-1"></a><span class="co">    # Save the final merged DataFrame to a new CSV</span></span>
-<span id="cb9-43"><a href="#cb9-43" aria-hidden="true" tabindex="-1"></a><span class="co">    divvy_df.to_csv('Quarterly_Bike_Trips_2.csv', index=False)</span></span>
-<span id="cb9-44"><a href="#cb9-44" aria-hidden="true" tabindex="-1"></a><span class="co">    print("Filtered data saved to 'Quarterly_Bike_Trips_2.csv'.")</span></span>
-<span id="cb9-45"><a href="#cb9-45" aria-hidden="true" tabindex="-1"></a><span class="co">else:</span></span>
-<span id="cb9-46"><a href="#cb9-46" aria-hidden="true" tabindex="-1"></a><span class="co">    print("No data was filtered or no files were processed.")</span></span>
-<span id="cb9-47"><a href="#cb9-47" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-48"><a href="#cb9-48" aria-hidden="true" tabindex="-1"></a><span class="co">'''</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
 <ol start="7" type="1">
-<li></li>
+<li><p>This code block is simply naming the datasets to variables so that they can be referenced in preparation for joining into one large dataset.</p></li>
+<li><p>We first create dictionaries in preparation for renaming the columns such that we can concatenate the data frames together on a column by column basis. Lines 445 - 450 rename the columns such that all columns across the three datasets are the same, and line 450 creates the singular concatenated dataset. Lines 452 through 455 are for data cleaning purposes, while line 458 groups the data by station and date, naming the new column “ride_count”.<br>
+Ride_count will be essential in the following visualizations and analysis.</p></li>
 </ol>
-<div id="065d0baf" class="cell" data-execution_count="9">
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># This code cell is just naming the dataframes so that we can merge them later.</span></span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="co"># In the Monthly data set, we care about the columns: 'started_at', 'ended_at', 'start_station_name', 'end_station_name'</span></span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>monthly_rides_dv <span class="op">=</span> pd.read_csv(<span class="st">'data/Monthly_Bike_Trips.csv'</span>)</span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="co"># In the Quarterly 1 data set, we care about the columns: 'start_time', 'end_time', 'from_station_name', 'to_station_name'</span></span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>quarterly_rides_dv <span class="op">=</span> pd.read_csv(<span class="st">'data/Quarterly_Bike_Trips.csv'</span>)</span>
-<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="co"># In the Quarterly 2 data set, we care about the columns: '01 - Rental Details Local Start Time', '01 - Rental Details Local End Time','03 - Rental Start Station Name', '02 - Rental End Station Name'</span></span>
-<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>quarterly_rides_dv_2 <span class="op">=</span> pd.read_csv(<span class="st">'data/Quarterly_Bike_Trips_2.csv'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<ol start="8" type="1">
-<li></li>
-</ol>
-<div id="2171b159" class="cell" data-execution_count="10">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># merging the quarterly data into one concat'd dataset</span></span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="co">#creating dictionaries to prepare for renaming columns in relevant datasets.</span></span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>quarterly_rides_dv_2 <span class="op">=</span> quarterly_rides_dv_2.rename(columns <span class="op">=</span> {</span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>        <span class="st">"01 - Rental Details Local Start Time"</span> : <span class="st">"start_time"</span>,</span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>        <span class="st">"01 - Rental Details Local End Time"</span> : <span class="st">"end_time"</span>,</span>
-<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>        <span class="st">"03 - Rental Start Station Name"</span> : <span class="st">"from_station_name"</span>,</span>
-<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>        <span class="st">"02 - Rental End Station Name"</span> : <span class="st">"to_station_name"</span></span>
-<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>})</span>
-<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>monthly_rides_dv <span class="op">=</span> monthly_rides_dv.rename(columns <span class="op">=</span> {</span>
-<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>    <span class="st">"started_at"</span> : <span class="st">"start_time"</span>,</span>
-<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>    <span class="st">"ended_at"</span> : <span class="st">"end_time"</span>,</span>
-<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>    <span class="st">"start_station_name"</span> : <span class="st">"from_station_name"</span>,</span>
-<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>    <span class="st">"end_station_name"</span> : <span class="st">"to_station_name"</span></span>
-<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>})</span>
-<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a><span class="co">#matching all of the names of the datasets.</span></span>
-<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>quarterly_rides_dv_2 <span class="op">=</span> quarterly_rides_dv_2[[<span class="st">"start_time"</span>, <span class="st">"end_time"</span>, <span class="st">"from_station_name"</span>, <span class="st">"to_station_name"</span>]]</span>
-<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>quarterly_rides_dv <span class="op">=</span> quarterly_rides_dv[[<span class="st">"start_time"</span>, <span class="st">"end_time"</span>, <span class="st">"from_station_name"</span>, <span class="st">"to_station_name"</span>]]</span>
-<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a>monthly_rides_dv <span class="op">=</span> monthly_rides_dv[[<span class="st">"start_time"</span>, <span class="st">"end_time"</span>, <span class="st">"from_station_name"</span>, <span class="st">"to_station_name"</span>]]</span>
-<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a><span class="co">#creating one large dataset</span></span>
-<span id="cb11-24"><a href="#cb11-24" aria-hidden="true" tabindex="-1"></a>quarterly_rides <span class="op">=</span> pd.concat([quarterly_rides_dv, quarterly_rides_dv_2, monthly_rides_dv], axis <span class="op">=</span> <span class="dv">0</span>)</span>
-<span id="cb11-25"><a href="#cb11-25" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-26"><a href="#cb11-26" aria-hidden="true" tabindex="-1"></a><span class="co">#verifying that data is in correct format.</span></span>
-<span id="cb11-27"><a href="#cb11-27" aria-hidden="true" tabindex="-1"></a>quarterly_rides[<span class="st">'start_time'</span>] <span class="op">=</span> pd.to_datetime(quarterly_rides[<span class="st">"start_time"</span>], <span class="bu">format</span><span class="op">=</span><span class="st">'mixed'</span>)</span>
-<span id="cb11-28"><a href="#cb11-28" aria-hidden="true" tabindex="-1"></a>quarterly_rides[<span class="st">"end_time"</span>] <span class="op">=</span> pd.to_datetime(quarterly_rides[<span class="st">"end_time"</span>], <span class="bu">format</span><span class="op">=</span><span class="st">'mixed'</span>)</span>
-<span id="cb11-29"><a href="#cb11-29" aria-hidden="true" tabindex="-1"></a>quarterly_rides[<span class="st">'year_month'</span>] <span class="op">=</span> quarterly_rides[<span class="st">'start_time'</span>].dt.strftime(<span class="st">'%Y-%m'</span>)</span>
-<span id="cb11-30"><a href="#cb11-30" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-31"><a href="#cb11-31" aria-hidden="true" tabindex="-1"></a><span class="co"># Group by station and the year_month, and count the rides for each group</span></span>
-<span id="cb11-32"><a href="#cb11-32" aria-hidden="true" tabindex="-1"></a>rides_per_station_per_month <span class="op">=</span> quarterly_rides.groupby([<span class="st">'from_station_name'</span>, <span class="st">'year_month'</span>]).size().reset_index(name<span class="op">=</span><span class="st">'ride_count'</span>)</span>
-<span id="cb11-33"><a href="#cb11-33" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-34"><a href="#cb11-34" aria-hidden="true" tabindex="-1"></a><span class="co"># Show the result</span></span>
-<span id="cb11-35"><a href="#cb11-35" aria-hidden="true" tabindex="-1"></a>rides_per_station_per_month.head()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="36">
+<div id="5f9e5bfb" class="cell" data-execution_count="10">
+<div class="cell-output cell-output-display" data-execution_count="34">
 <div>
 
 
@@ -618,58 +255,29 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 <ol start="9" type="1">
-<li></li>
+<li>Line 467 is creating a new column titled “year” within the concatenated dataset based on the year of the “year_month” column. We then break the concatenated dataset into two variables, one that contains data pre 2020 and another that contains data post 2020 to highlight any eOects that may have occurred due to Covid. Additionally, it is worth noting that instruction was fully remote for 2020- 2021, which further influenced our decision to create two new graphs for our visualizations. After breaking the data into pre and post covid, we create two lasagna plots to demonstrate Divvy ridership on a year_month and per station basis.</li>
 </ol>
-<div id="eb3db9a4" class="cell" data-execution_count="11">
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># creating a year column</span></span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>rides_per_station_per_month[<span class="st">"year"</span>] <span class="op">=</span> pd.to_datetime(rides_per_station_per_month[<span class="st">'year_month'</span>]).dt.year</span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="co">#filtering for pre and post covid, for the purpose of visualizations</span></span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>rides_per_station_per_month_2017 <span class="op">=</span> rides_per_station_per_month[rides_per_station_per_month[<span class="st">"year"</span>] <span class="op">&lt;</span> <span class="dv">2020</span>]</span>
-<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>rides_per_station_per_month_2020 <span class="op">=</span> rides_per_station_per_month[rides_per_station_per_month[<span class="st">"year"</span>] <span class="op">&gt;=</span> <span class="dv">2020</span>]</span>
-<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>lasagna2017 <span class="op">=</span>  alt.Chart(rides_per_station_per_month_2017).mark_rect().encode(</span>
-<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>    x<span class="op">=</span>alt.X(<span class="st">'year_month:N'</span>, title<span class="op">=</span><span class="st">'Year-Month'</span>, sort<span class="op">=</span><span class="va">None</span>), </span>
-<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>    y<span class="op">=</span>alt.Y(<span class="st">'from_station_name:N'</span>, title<span class="op">=</span><span class="st">'Station Name'</span>), </span>
-<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>    color<span class="op">=</span>alt.Color(<span class="st">'ride_count:Q'</span>, scale<span class="op">=</span>alt.Scale(scheme<span class="op">=</span><span class="st">'blues'</span>), title<span class="op">=</span><span class="st">'Ride Count'</span>),  </span>
-<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>).properties(</span>
-<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>    width<span class="op">=</span><span class="dv">800</span>,</span>
-<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>    height<span class="op">=</span><span class="dv">400</span>,</span>
-<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>    title<span class="op">=</span><span class="st">"Monthly Divvy Rides per Station pre Covid, Hyde Park"</span></span>
-<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>lasagna2020 <span class="op">=</span>  alt.Chart(rides_per_station_per_month_2020).mark_rect().encode(</span>
-<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>    x<span class="op">=</span>alt.X(<span class="st">'year_month:N'</span>, title<span class="op">=</span><span class="st">'Year-Month'</span>, sort<span class="op">=</span><span class="va">None</span>), </span>
-<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>    y<span class="op">=</span>alt.Y(<span class="st">'from_station_name:N'</span>, title<span class="op">=</span><span class="st">'Station Name'</span>),</span>
-<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a>    color<span class="op">=</span>alt.Color(<span class="st">'ride_count:Q'</span>, scale<span class="op">=</span>alt.Scale(scheme<span class="op">=</span><span class="st">'blues'</span>), title<span class="op">=</span><span class="st">'Ride Count'</span>), </span>
-<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a>).properties(</span>
-<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a>    width<span class="op">=</span><span class="dv">800</span>,</span>
-<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a>    height<span class="op">=</span><span class="dv">400</span>,</span>
-<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a>    title<span class="op">=</span><span class="st">"Monthly Divvy Rides per Station post Covid, Hyde Park"</span></span>
-<span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<div id="b70db237" class="cell" data-execution_count="12">
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>lasagna2017 <span class="op">|</span> lasagna2020</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="38">
+<div id="26c70558" class="cell" data-execution_count="12">
+<div class="cell-output cell-output-display" data-execution_count="36">
 
 <style>
-  #altair-viz-6801b454c0d2457b9279c74be8769d2e.vega-embed {
+  #altair-viz-f2ffbadc91884017ae3c22ce29a3fac1.vega-embed {
     width: 100%;
     display: flex;
   }
 
-  #altair-viz-6801b454c0d2457b9279c74be8769d2e.vega-embed details,
-  #altair-viz-6801b454c0d2457b9279c74be8769d2e.vega-embed details summary {
+  #altair-viz-f2ffbadc91884017ae3c22ce29a3fac1.vega-embed details,
+  #altair-viz-f2ffbadc91884017ae3c22ce29a3fac1.vega-embed details summary {
     position: relative;
   }
 </style>
-<div id="altair-viz-6801b454c0d2457b9279c74be8769d2e"></div>
+<div id="altair-viz-f2ffbadc91884017ae3c22ce29a3fac1"></div>
 <script type="text/javascript">
   var VEGA_DEBUG = (typeof VEGA_DEBUG == "undefined") ? {} : VEGA_DEBUG;
   (function(spec, embedOpt){
     let outputDiv = document.currentScript.previousElementSibling;
-    if (outputDiv.id !== "altair-viz-6801b454c0d2457b9279c74be8769d2e") {
-      outputDiv = document.getElementById("altair-viz-6801b454c0d2457b9279c74be8769d2e");
+    if (outputDiv.id !== "altair-viz-f2ffbadc91884017ae3c22ce29a3fac1") {
+      outputDiv = document.getElementById("altair-viz-f2ffbadc91884017ae3c22ce29a3fac1");
     }
     const paths = {
       "vega": "https://cdn.jsdelivr.net/npm/vega@5?noext",
@@ -720,68 +328,29 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 <ol start="10" type="1">
-<li></li>
+<li>In this code block we attempt to generate a average monthly Divvy ridership to compare to the lasagna plots above. We want to see how an aggregated analysis from 2017 to 2024 demonstrate <strong>average</strong> monthly ridership in contrast to the lasagna plots, which show ridership on a monthly basis for each station. We group the data by year month, and take the mean of the ride_count column, saving that information in the newly created “avg_ride_count” column. Since the monthly data is saved numerically, we use the months dictionary to map the numeric values via a lambda function to the names of the month, ensuring to save the data in the column as a string. We then further groupby the month column to create a bar chart of the average monthly Divvy utilization. The benefit of visualizing the data with the lasagna plots in comparison to the bar chart is that we are able to get extra information from the lasagna plots, such as which stations are most active and when, which is not visible in the bar plot.</li>
 </ol>
-<div id="da5db820" class="cell" data-execution_count="13">
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate average rides per month</span></span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>avg_rides_per_month <span class="op">=</span> rides_per_station_per_month.groupby(<span class="st">'year_month'</span>)[<span class="st">'ride_count'</span>].mean().reset_index(name<span class="op">=</span><span class="st">'avg_ride_count'</span>)</span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract year and month to filter data by full years</span></span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>avg_rides_per_month[<span class="st">"year_month"</span>] <span class="op">=</span> pd.to_datetime(avg_rides_per_month[<span class="st">"year_month"</span>])</span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>avg_rides_per_month[<span class="st">'year'</span>] <span class="op">=</span> avg_rides_per_month[<span class="st">'year_month'</span>].dt.year</span>
-<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>avg_rides_per_month[<span class="st">'month'</span>] <span class="op">=</span> avg_rides_per_month[<span class="st">'year_month'</span>].dt.month</span>
-<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>months <span class="op">=</span> {</span>
-<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>    <span class="dv">1</span>: <span class="st">"January"</span>, </span>
-<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>    <span class="dv">2</span>: <span class="st">"February"</span>, </span>
-<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>    <span class="dv">3</span>: <span class="st">"March"</span>,</span>
-<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>    <span class="dv">4</span>: <span class="st">"April"</span>,</span>
-<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>    <span class="dv">5</span>: <span class="st">"May"</span>,</span>
-<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>    <span class="dv">6</span>: <span class="st">"June"</span>,</span>
-<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>    <span class="dv">7</span>: <span class="st">"July"</span>,</span>
-<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>    <span class="dv">8</span>: <span class="st">"August"</span>,</span>
-<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>    <span class="dv">9</span>: <span class="st">"September"</span>,</span>
-<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a>    <span class="dv">10</span>: <span class="st">"October"</span>, </span>
-<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a>    <span class="dv">11</span>: <span class="st">"November"</span>,</span>
-<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a>    <span class="dv">12</span>: <span class="st">"December"</span>}</span>
-<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a>avg_rides_per_month_filtered <span class="op">=</span> avg_rides_per_month</span>
-<span id="cb14-24"><a href="#cb14-24" aria-hidden="true" tabindex="-1"></a>avg_rides_per_month_filtered[<span class="st">"month"</span>] <span class="op">=</span> avg_rides_per_month[<span class="st">"month"</span>].<span class="bu">apply</span>(<span class="kw">lambda</span> x: months[x]).astype(<span class="bu">str</span>)</span>
-<span id="cb14-25"><a href="#cb14-25" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-26"><a href="#cb14-26" aria-hidden="true" tabindex="-1"></a>avg_rides_per_month_filtered_groupby <span class="op">=</span> avg_rides_per_month_filtered.groupby(<span class="st">"month"</span>).mean().reset_index()</span>
-<span id="cb14-27"><a href="#cb14-27" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-28"><a href="#cb14-28" aria-hidden="true" tabindex="-1"></a><span class="co"># making the bar graph</span></span>
-<span id="cb14-29"><a href="#cb14-29" aria-hidden="true" tabindex="-1"></a>bar_chart_divvy <span class="op">=</span> alt.Chart(avg_rides_per_month_filtered_groupby).mark_bar().encode(</span>
-<span id="cb14-30"><a href="#cb14-30" aria-hidden="true" tabindex="-1"></a>    x<span class="op">=</span>alt.X(<span class="st">'month:N'</span>, sort<span class="op">=</span>[<span class="st">'January'</span>, <span class="st">'February'</span>, <span class="st">'March'</span>, <span class="st">'April'</span>, <span class="st">'May'</span>, <span class="st">'June'</span>, <span class="st">'July'</span>, </span>
-<span id="cb14-31"><a href="#cb14-31" aria-hidden="true" tabindex="-1"></a>    <span class="st">'August'</span>, <span class="st">'September'</span>, <span class="st">'October'</span>, <span class="st">'November'</span>, <span class="st">'December'</span>]),</span>
-<span id="cb14-32"><a href="#cb14-32" aria-hidden="true" tabindex="-1"></a>    y<span class="op">=</span><span class="st">'avg_ride_count:Q'</span>,  </span>
-<span id="cb14-33"><a href="#cb14-33" aria-hidden="true" tabindex="-1"></a>).properties(</span>
-<span id="cb14-34"><a href="#cb14-34" aria-hidden="true" tabindex="-1"></a>    width<span class="op">=</span><span class="dv">800</span>, </span>
-<span id="cb14-35"><a href="#cb14-35" aria-hidden="true" tabindex="-1"></a>    height<span class="op">=</span><span class="dv">400</span>,</span>
-<span id="cb14-36"><a href="#cb14-36" aria-hidden="true" tabindex="-1"></a>    title<span class="op">=</span> <span class="st">"Average Divvy Monthly Ridership, Hyde Park"</span>  </span>
-<span id="cb14-37"><a href="#cb14-37" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb14-38"><a href="#cb14-38" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-39"><a href="#cb14-39" aria-hidden="true" tabindex="-1"></a>bar_chart_divvy</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="39">
+<div id="d83c7bbd" class="cell" data-execution_count="13">
+<div class="cell-output cell-output-display" data-execution_count="37">
 
 <style>
-  #altair-viz-f90623d1773e46b7bc809933ca34fa02.vega-embed {
+  #altair-viz-6101d5d1ec474e6aac28dea36c18ed39.vega-embed {
     width: 100%;
     display: flex;
   }
 
-  #altair-viz-f90623d1773e46b7bc809933ca34fa02.vega-embed details,
-  #altair-viz-f90623d1773e46b7bc809933ca34fa02.vega-embed details summary {
+  #altair-viz-6101d5d1ec474e6aac28dea36c18ed39.vega-embed details,
+  #altair-viz-6101d5d1ec474e6aac28dea36c18ed39.vega-embed details summary {
     position: relative;
   }
 </style>
-<div id="altair-viz-f90623d1773e46b7bc809933ca34fa02"></div>
+<div id="altair-viz-6101d5d1ec474e6aac28dea36c18ed39"></div>
 <script type="text/javascript">
   var VEGA_DEBUG = (typeof VEGA_DEBUG == "undefined") ? {} : VEGA_DEBUG;
   (function(spec, embedOpt){
     let outputDiv = document.currentScript.previousElementSibling;
-    if (outputDiv.id !== "altair-viz-f90623d1773e46b7bc809933ca34fa02") {
-      outputDiv = document.getElementById("altair-viz-f90623d1773e46b7bc809933ca34fa02");
+    if (outputDiv.id !== "altair-viz-6101d5d1ec474e6aac28dea36c18ed39") {
+      outputDiv = document.getElementById("altair-viz-6101d5d1ec474e6aac28dea36c18ed39");
     }
     const paths = {
       "vega": "https://cdn.jsdelivr.net/npm/vega@5?noext",
@@ -832,15 +401,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 <ol start="11" type="1">
-<li></li>
+<li>This code block creates a file that is essential to plotting data in the dashboard. Finally, we also created a multipage dashboard, one page for CTA rides visualizing aggregate rides from 2018 - 2023, and a page for Divvy bikes visualizing aggregate rides from 2017 - 2023.</li>
 </ol>
-<div id="2f7c646b" class="cell" data-execution_count="14">
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co">#creating the file that nasser needs for the dashboard</span></span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>quarterly_rides[<span class="st">"year_month"</span>] <span class="op">=</span> pd.to_datetime(quarterly_rides[<span class="st">"year_month"</span>])</span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>quarterly_rides[<span class="st">"month"</span>] <span class="op">=</span> quarterly_rides[<span class="st">"year_month"</span>].dt.month</span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>quarterly_rides_groupby <span class="op">=</span> quarterly_rides.groupby(<span class="st">"month"</span>).count().reset_index().drop([<span class="st">"end_time"</span>, <span class="st">"from_station_name"</span>, <span class="st">"to_station_name"</span>, <span class="st">"year_month"</span>], axis <span class="op">=</span> <span class="dv">1</span>).rename(columns <span class="op">=</span> {<span class="st">"start_time"</span> : <span class="st">"count"</span>})</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
+<p>We want to note that the dashboard was pushed separately to the GitHub repository for this project. These dashboards can be accessed directly in the “dashboard.py” file.</p>
 </section>
 
 </main>

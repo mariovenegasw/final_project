@@ -40,7 +40,7 @@ operate only in Hyde Park, and to observations corresponding to 2018 onwards.
 
 ```{python}
 #| echo: false
-#| eval: false
+#| eval: true
 
 import pandas as pd
 import os
@@ -70,7 +70,7 @@ print(f"Number of rows: {row_count}")
 
 ```{python}
 #| echo: false
-#| eval: false
+#| eval: true
 
 # Extract year and month
 bus_routes['year'] = bus_routes['date'].dt.year
@@ -79,8 +79,7 @@ bus_routes['month'] = bus_routes['date'].dt.month
 # Group by year and month, and count rows
 cta_grouped = bus_routes.groupby(['route', 'date'])['rides'].sum().reset_index(name='rides') 
 
-# The data is uploaded daily for each of the routes, this is why the count is twice as much as the days in each 
-month. 
+# The data is uploaded daily for each of the routes, this is why the count is twice as much as the days in each month. 
 
 # Sort the filtered data by the 'date' column
 bus_routes = bus_routes.sort_values(by='date')
@@ -96,7 +95,7 @@ average monthly observations, and plot this into a bar chart. Finally, we use th
 
 ```{python}
 #| echo: false
-#| eval: false
+#| eval: true
 # Taking the above code block, finding the average for each month, from 2018 to 2024, and plotting this.
 
 months = {
@@ -161,12 +160,12 @@ bar_chart | heatmap
 and monthly from 2021-2023. In addition, the names of the columns included in the data bases changed at some point. 
 This chunk explores the diOerences between each data base, monthly dissemination and quarterly dissemination.
 
-**This chunck was commented out and all data can be found on Drive**
+
 ```{python}
 #| echo: false
 #| eval: false
 
-'''
+# This chunck was commented out and all data can be found on Drive
 # Up to 2020, the information was uploaded quarterly, after this, it started to be uploaded monthly. Before merging
  the data, it is necessary to explore the data bases. All these data sets are included in the divy_data folder in 
  the Drive
@@ -180,7 +179,7 @@ print(quarterly_sample.head())
 monthly_sample = pd.read_csv('divvy_data/202004-divvy-tripdata.csv')
 
 print(monthly_sample.head())
-'''
+
 
 ```
 
@@ -200,7 +199,7 @@ of divvy docking stations.
 
 ```{python}
 #| echo: false
-#| eval: false
+#| eval: true
 
 import geopandas as gpd
 from shapely.geometry import shape, Point
@@ -255,9 +254,11 @@ unique_stations = stations_in_hp['station_na'].unique()
 
 **This chunk was commented out to speed up the knitting process, large files found on Drive**
 ```{python}
-#| echo: true
+#| echo: false
 #| eval: false
-'''
+
+
+# This chunk was commented out to speed up the knitting process, large files found on Driv
 #Monthly_data
 
 # Name the folder that contains all the quarterly and monthly information of divvy trips
@@ -303,16 +304,18 @@ if filtered_data:
     print("Filtered data saved to 'Monthly_Bike_Trips.csv'.")
 else:
     print("No data was filtered or no files were processed.")
-'''
+
 ```
 
 6.2.
 
 **This chunk was commented out to speed up the knitting process, large files found on Drive**
 ```{python}
-#| echo: true
+#| echo: false
 #| eval: false
-'''
+
+# This chunk was commented out to speed up the knitting process, large files found on Drive
+
 #Quarterly
 # Name the folder that contains all the quarterly and monthly information of divvy trips
 folder_path = 'divvy_data'
@@ -357,16 +360,19 @@ if filtered_data:
     print("Filtered data saved to 'Quarterly_Bike_Trips.csv'.")
 else:
     print("No data was filtered or no files were processed.")
-'''
+
 ```
 
 6.3. 
 
 **This chunk was commented out to speed up the knitting process, large files found on Drive**
 ```{python}
-#| echo: true
+#| echo: false
 #| eval: false
-'''
+
+
+# This chunk was commented out to speed up the knitting process, large files found on Drive
+
 #Quarterly 2. Two of the data sets have different column names
 
 # Name the folder that contains all the quarterly and monthly information of divvy trips
@@ -413,7 +419,7 @@ if filtered_data:
 else:
     print("No data was filtered or no files were processed.")
 
-'''
+
 ```
 
 7. This code block is simply naming the datasets to variables so that they can be referenced in preparation for
@@ -421,7 +427,7 @@ else:
 
 ```{python}
 #| echo: false
-#| eval: false
+#| eval: true
 
 # This code cell is just naming the dataframes so that we can merge them later.
 # In the Monthly data set, we care about the columns: 'started_at', 'ended_at', 'start_station_name', 'end_station_name'
@@ -443,7 +449,7 @@ three datasets are the same, and line 450 creates the singular concatenated data
 
 ```{python}
 #| echo: false
-#| eval: false
+#| eval: true
 
 # merging the quarterly data into one concat'd dataset
 
@@ -476,8 +482,7 @@ quarterly_rides["end_time"] = pd.to_datetime(quarterly_rides["end_time"], format
 quarterly_rides['year_month'] = quarterly_rides['start_time'].dt.strftime('%Y-%m')
 
 # Group by station and the year_month, and count the rides for each group
-rides_per_station_per_month = quarterly_rides.groupby(['from_station_name', 'year_month']).size().reset_index
-(name='ride_count')
+rides_per_station_per_month = quarterly_rides.groupby(['from_station_name', 'year_month']).size().reset_index(name='ride_count')
 
 # Show the result
 rides_per_station_per_month.head()
@@ -492,7 +497,7 @@ to demonstrate Divvy ridership on a year_month and per station basis.
 
 ```{python}
 #| echo: false
-#| eval: false
+#| eval: true
 
 # creating a year column
 rides_per_station_per_month["year"] = pd.to_datetime(rides_per_station_per_month['year_month']).dt.year
@@ -524,7 +529,7 @@ lasagna2020 =  alt.Chart(rides_per_station_per_month_2020).mark_rect().encode(
 
 ```{python}
 #| echo: false
-#| eval: false
+#| eval: true
 
 lasagna2017 | lasagna2020
 ```
@@ -543,7 +548,7 @@ month, and take the mean of the ride_count column, saving that information in th
 
 ```{python}
 #| echo: false
-#| eval: false
+#| eval: true
 
 # Calculate average rides per month
 avg_rides_per_month = rides_per_station_per_month.groupby('year_month')['ride_count'].mean().reset_index(name='avg_ride_count')
@@ -592,7 +597,7 @@ bikes visualizing aggregate rides from 2017 - 2023.
 
 ```{python}
 #| echo: false
-#| eval: false
+#| eval: true
 
 #creating the file that nasser needs for the dashboard
 quarterly_rides["year_month"] = pd.to_datetime(quarterly_rides["year_month"])
