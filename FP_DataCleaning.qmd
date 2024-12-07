@@ -18,86 +18,6 @@ include-before-body:
     }
 ---
 
-## Write-up
-
-This work analyses the use of public transportation within the Hyde Park in Chicago. As most of the poeple in the
-area are students of the University of Chicago, this analysis seeks to determine the use of Divvy Bikes and CTA 
-buses to define if there should be any changes in the facilitation of services by the University given the
-preferences and demands of students during different times of the year. 
-
-    For the analysis, the team used to main sources of data: 
-- CTA - Ridership - Daily Boarding Totals: This dataset shows systemwide boardings for both bus and rail services
-provided by CTA, dating back to 2001. 
-- Divvy Trip history data: Divvy offers quarterly and monthly datasets of every trip taken since 2018. 
-
-    However, this data had to be cleaned to limit it to (a.) the interest dates (2018-2023, which were selected based 
-on theavailability of data from Divvy), and (b.) Hyde Park. In addition, as the data was cleaned, the team made
-graphs to visualize the data. Finally, the team made a dashboards that allows to visualize the information for 
-particular timeframes. 
-
-    The steps followed for this are enumerated below. Each number corresponds to a chunk in the coding section of the
-document. 
-
-1. As mentioned above, the data base from the CTA includes information dating back to 2001, and for every bus route
-    of the CTA in Chicago. The coding shows the steps to limit the information to bus routes 171 and 172 - which operate only in Hyde Park, and to observations corresponding to 2018 onwards. 
-
-2. After the step above, the CTA data included information for each day from 2018 to 2023. However, due to the fact
-    that the analysis seeks to determine the demand by time of the year, the team decided to group the data by
-    year and month. 
-
-3. This code block creates a list that captures the average number of rides on a monthly basis across all years from the previous observations_per_month variable. We then create a dataframe that matches the months with the average monthly observations, and plot this into a bar chart. Finally, we use the same data to create a heatmap, however the heatmap is created where the X axis is the month, and the Y axis is a year, which means that each cell is a unique month of each year. By observing the year-month, we can clearly visualize the seasonal pattern of ridership in the data.
-
-4. The information provided by Divvy regarding every ride taken in Chicago was uploaded quarterly from 2018-2020
-    and monthly from 2021-2023. In addition, the names of the columns included in the data bases changed at some point. This chunk explores the differences between each kind of data base, monthly and quarterly.
-
-5. In addition, the Divvy data includes information for every trip made in the Chicago area. The data had to be
-    cleaned to include information for Divvy docking stations in Hyde Park only. To identify these docking stations,
-    the team used the following data bases:
-    - chicago_areas. This data base from the Chicago City Government includes geometric coordinates for each area in 
-    Chicago. 
-    - divvy_stations. This shape data base from the City of Chicago includes the geographic coordinates and names of 
-    every Divvy docking station in the city. 
-
-The general steps followed to identify the doching stations in Hyde Park using this information were the following:
-    - Convert the geometry column in chicago_areas to shapely geometry to make it compatible with the station_gdf,
-    which contained the geographic information of divvy docking stations
-    - Limit geographic location to Hyde Park
-    - Perform spatial joint to print the name of the Divvy Stations in Hyde Park
-
-6. Once the names of the stations in Hyde Park were identified, the team used them to limit the observations in the
- Divvy data sets to trips that started and ended in Hyde Park. This makes the analysis more comparable to the
- use of routes 171 and 172, which only operate inside Hyde Park. 
-
-    Since the information was provided in data sets with different column format, the team had to do three different
- scraping codes from a folder containing all data bases uploaded by Divvy. The code cleans each of the data sets from Divvy so they only include trips that started and ended in docking stations identified within Hyde Park. Once all the data bases were cleaned, they were concatenated into a single file. 
-
- Chunks 6.1, 6.2, and 6.3 show the process described above for the three column formats identified. 
-
-7. This code block is simply naming the datasets to variables so that they can be referenced in preperation for joining into one large dataset.
-
-8. We first create dicitionaries in preperation for renaming the columns such that we can concatenate the dataframes together on a column by column basis. Lines 445 - 450 rename the columns such that all columns across the three datasets are the same, and line 450 creates the singular concatenated dataset. Lines 452 through 455 are for data cleaning purposes, while line 458 groups the data by station and date, naming the new column "ride_count". Ride_count will be essential in the following visualizations and analysis.
-
-9. Line 467 is creating a new column titled "year" within the concatenated dataset based on the year of the "year_month" column. We then break the concatenated dataset into two variables, one that contains data pre 2020 and another that contains data post 2020 to highlight any effects that may have occured due to Covid. Additionally, it is worth noting that instruction was fully remote for 2020-2021, which further influenced our decision to create two new graphs for our visualizations. 
-
-    After breaking the data into pre and post covid, we create two lasagna plots to demonstrate Divvy ridership on a year_month and per station basis.
-
-10. In this code block we attempt to generate a average monthly Divvy ridership to compare to the lasagna plots above. We want to see how an aggregated analysis from 2017 to 2024 demonstrate **average** monthly ridership in contrast to the lasagna plots, which show ridership on a monthly basis for each station. 
-
-    We group the data by year month, and take the mean of the ride_count column, saving that information in the newely created "avg_ride_count" column. 
-
-    Since the monthly data is saved numerically, we use the months dictionary to map the numeric values via a lambda function to the names of the month, ensuring to save the data in the column as a string. We then further groupby the month column to create a bar chart of the average monthly Divvy utilization. 
-
-    The benefit of visualizing the data with the lasagna plots in comparison to the bar chart is that we are able to get extra information from the lasagna plots, such as which stations are most active and when, which is not visible in the bar plot. 
-
-11. This code block creates a file that is essential to plotting data in the dashboard.
-
-Finally, we also created a multipage dashboard, one page for CTA rides visualizing aggregate rides from 2018 - 2023, and a page for Divvy bikes visualizing aggregate rides from 2017 - 2023. 
-
-We want want to note that the dashboard was pushed seperately to the github repository for this project. These dashboards can be accessed directly at "dashboard.py".
-
-
-**[[Link to Google Drive with Data](https://drive.google.com/drive/u/1/folders/1q9t4VtaZ1b81MvYmoRcrrbEFFR_3E8qz)]**
-
 ## CTA Routes
 
 1.
@@ -188,7 +108,8 @@ average_ridership_df = pd.DataFrame({"monthly_avg_riders": average_ridership_lis
 
 # making the bar graph
 bar_chart = alt.Chart(average_ridership_df).mark_bar().encode(
-    x=alt.X('month:N', sort=['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']),  # Month on the X-axis
+    x=alt.X('month:N', sort=['January', 'February', 'March', 'April', 'May', 'June', 'July', 
+    'August', 'September', 'October', 'November', 'December']),  # Month on the X-axis
     y='monthly_avg_riders:Q',
 ).properties(
     width=800, 
@@ -198,7 +119,7 @@ bar_chart = alt.Chart(average_ridership_df).mark_bar().encode(
 
 # heatmap of month on x axis and year on y axis
 heatmap = alt.Chart(cta_grouped).mark_rect().encode(
-    x=alt.X('month:N', title='Month', sort=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]),
+    x=alt.X('month:N', title='Month',
     y=alt.Y('year:O', title='Year'), 
     color = alt.Color("rides")
 ).properties(
@@ -499,9 +420,9 @@ rides_per_station_per_month_2017 = rides_per_station_per_month[rides_per_station
 rides_per_station_per_month_2020 = rides_per_station_per_month[rides_per_station_per_month["year"] >= 2020]
 
 lasagna2017 =  alt.Chart(rides_per_station_per_month_2017).mark_rect().encode(
-    x=alt.X('year_month:N', title='Year-Month', sort=None),  # X-axis: Year-Month
-    y=alt.Y('from_station_name:N', title='Station Name'),  # Y-axis: Station Name
-    color=alt.Color('ride_count:Q', scale=alt.Scale(scheme='blues'), title='Ride Count'),  # Color based on the number of rides
+    x=alt.X('year_month:N', title='Year-Month', sort=None), 
+    y=alt.Y('from_station_name:N', title='Station Name'), 
+    color=alt.Color('ride_count:Q', scale=alt.Scale(scheme='blues'), title='Ride Count'),  
 ).properties(
     width=800,
     height=400,
@@ -509,9 +430,9 @@ lasagna2017 =  alt.Chart(rides_per_station_per_month_2017).mark_rect().encode(
 )
 
 lasagna2020 =  alt.Chart(rides_per_station_per_month_2020).mark_rect().encode(
-    x=alt.X('year_month:N', title='Year-Month', sort=None),  # X-axis: Year-Month
-    y=alt.Y('from_station_name:N', title='Station Name'),  # Y-axis: Station Name
-    color=alt.Color('ride_count:Q', scale=alt.Scale(scheme='blues'), title='Ride Count'),  # Color based on the number of rides
+    x=alt.X('year_month:N', title='Year-Month', sort=None), 
+    y=alt.Y('from_station_name:N', title='Station Name'),
+    color=alt.Color('ride_count:Q', scale=alt.Scale(scheme='blues'), title='Ride Count'), 
 ).properties(
     width=800,
     height=400,
@@ -555,7 +476,8 @@ avg_rides_per_month_filtered_groupby = avg_rides_per_month_filtered.groupby("mon
 
 # making the bar graph
 bar_chart_divvy = alt.Chart(avg_rides_per_month_filtered_groupby).mark_bar().encode(
-    x=alt.X('month:N', sort=['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']),
+    x=alt.X('month:N', sort=['January', 'February', 'March', 'April', 'May', 'June', 'July', 
+    'August', 'September', 'October', 'November', 'December']),
     y='avg_ride_count:Q',  
 ).properties(
     width=800, 
