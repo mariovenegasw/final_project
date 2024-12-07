@@ -12,17 +12,35 @@ execute:
   message: false  
   error: false 
 ---
+This work analyses the use of public transportation within Hyde Park in Chicago. As a large proportion of the 
+people in Hyde Park are students of the University of Chicago, this analysis uses Divvy Bike and CTA bus data to 
+define recommendations around changes the use of services by the University given the preferences and demands of 
+students during different times of the year. For the analysis, the team used two main sources of data:
 
-Note: some chuncks were commeneted out because of the size of the files which cannot be pushed to the repo, all files are included in a Drive link
+- CTA Ridership, Daily Boarding Totals: This dataset shows systemwide boardings for both bus and rail services 
+provided by CTA, dating back to 2001.
+- Divvy Trip History Data: Divvy oOers quarterly and monthly datasets of every trip taken since 2018.
+
+This data had to be cleaned and limited to (a.) the time period of interest (2018- 2023, which were selected based 
+on the availability of data from Divvy), and (b.) the neighborhood of interest, Hyde Park. As part of our analysis, 
+after the data was cleaned, the team made graphs to visualize our output. Finally, the team made a dashboard that
+enables policy makers to visualize this information for particular timeframes. The steps followed for this are 
+enumerated below. Each number corresponds to a chunk in the coding section of the document.
+
+Note: some chuncks were commeneted out because of the size of the files which cannot be pushed to the repo, all
+files are included in a Drive link
 
 **[Drive](https://drive.google.com/drive/u/0/folders/1q9t4VtaZ1b81MvYmoRcrrbEFFR_3E8qz)**
 
 ## CTA Routes Data
 
-1.
+1. As mentioned above, the data base from the CTA includes information dating back to 2001, and for every bus route
+of the CTA in Chicago. The coding shows the steps to limit the information to bus routes 171 and 172 - which 
+operate only in Hyde Park, and to observations corresponding to 2018 onwards.
 
 ```{python}
-# | echo: true 
+#| echo: false
+#| eval: false
 
 import pandas as pd
 import os
@@ -46,9 +64,13 @@ row_count = bus_routes.shape[0]
 print(f"Number of rows: {row_count}")
 ```
 
-2. 
+2. After the step above, the CTA data included information for each day from 2018 to 2023. However, due to the fact
+ that the analysis seeks to determine the demand by time of the year, the team decided to group the data by year 
+ and month.
 
 ```{python}
+#| echo: false
+#| eval: false
 
 # Extract year and month
 bus_routes['year'] = bus_routes['date'].dt.year
@@ -57,16 +79,24 @@ bus_routes['month'] = bus_routes['date'].dt.month
 # Group by year and month, and count rows
 cta_grouped = bus_routes.groupby(['route', 'date'])['rides'].sum().reset_index(name='rides') 
 
-# The data is uploaded daily for each of the routes, this is why the count is twice as much as the days in each month. 
+# The data is uploaded daily for each of the routes, this is why the count is twice as much as the days in each 
+month. 
 
 # Sort the filtered data by the 'date' column
 bus_routes = bus_routes.sort_values(by='date')
 
 ```
 
-3. 
+3. This code block creates a list that captures the average number of rides on a monthly basis across all years 
+from the previous observations_per_month variable. We then create a data frame that matches the months with the 
+average monthly observations, and plot this into a bar chart. Finally, we use the same data to create a heatmap,
+ however the heatmap is created where the X axis is the month, and the Y axis is a year, which means that each cell 
+ is a unique month of each year. By observing the year-month, we can clearly visualize the seasonal pattern of 
+ ridership in the data on an annual basis.
 
 ```{python}
+#| echo: false
+#| eval: false
 # Taking the above code block, finding the average for each month, from 2018 to 2024, and plotting this.
 
 months = {
@@ -127,14 +157,19 @@ bar_chart | heatmap
 
 ```
 
-4. Divvy ridership
+4. The information provided by Divvy regarding every ride taken in Chicago was uploaded quarterly from 2018-2020 
+and monthly from 2021-2023. In addition, the names of the columns included in the data bases changed at some point. 
+This chunk explores the diOerences between each data base, monthly dissemination and quarterly dissemination.
 
 **This chunck was commented out and all data can be found on Drive**
 ```{python}
-#| echo: true
+#| echo: false
 #| eval: false
+
 '''
-# Up to 2020, the information was uploaded quarterly, after this, it started to be uploaded monthly. Before merging the data, it is necessary to explore the data bases. All these data sets are included in the divy_data folder in the Drive
+# Up to 2020, the information was uploaded quarterly, after this, it started to be uploaded monthly. Before merging
+ the data, it is necessary to explore the data bases. All these data sets are included in the divy_data folder in 
+ the Drive
 
 # Quarterly data base:
 quarterly_sample = pd.read_csv('divvy_data/Divvy_Trips_2020_Q1.csv')
@@ -145,15 +180,28 @@ print(quarterly_sample.head())
 monthly_sample = pd.read_csv('divvy_data/202004-divvy-tripdata.csv')
 
 print(monthly_sample.head())
-
 '''
+
 ```
 
 
 ## Divvy and Spatial Data
-5. 
+5. In addition, the Divvy data includes information for every trip made in Chicago city limits. The data had to be cleaned to include information for Divvy docking stations in Hyde Park only. To identify these docking stations the team used the following data bases:
+- chicago_areas. This data base from the Chicago City Government includes
+geometric coordinates for each area in Chicago.
+- divvy_stations. This shape data base from the City of Chicago includes the
+geographic coordinates and names of every Divvy docking station in the city.
+The general steps followed to identify the docking stations in Hyde Park using this information were the following:
+- Convert the geometry column in chicago_areas to shapely geometry to make it
+compatible with the station_gdf, mwhich contained the geographic information
+of divvy docking stations.
+- Limit geographic location to Hyde Park.
+- Perform spatial joint to print the name of the Divvy Stations in Hyde Park.
 
 ```{python}
+#| echo: false
+#| eval: false
+
 import geopandas as gpd
 from shapely.geometry import shape, Point
 
@@ -194,7 +242,14 @@ unique_stations = stations_in_hp['station_na'].unique()
 
 ```
 
-6. 
+6. Once the names of the stations in Hyde Park were identified, the team used them to limit the observations in the
+ Divvy data sets to trips that started and ended in Hyde Park. This makes the analysis more comparable to the use
+  of routes 171 and 172, which only operate inside Hyde Park. Since the information was provided in data sets with
+  different column format, the team had to do three different scraping codes from a folder containing all data 
+  bases uploaded by Divvy. The code cleans each of the data sets from Divvy so they only include trips that started 
+  and ended in docking stations identified within Hyde Park. Once all the data bases were cleaned, they were 
+  concatenated into a single file. Chunks 6.1, 6.2, and 6.3 show the process described above for the three column 
+  formats identified.
 
 6.1.
 
@@ -305,7 +360,7 @@ else:
 '''
 ```
 
-6.3.
+6.3. 
 
 **This chunk was commented out to speed up the knitting process, large files found on Drive**
 ```{python}
@@ -361,9 +416,13 @@ else:
 '''
 ```
 
-7. 
+7. This code block is simply naming the datasets to variables so that they can be referenced in preparation for
+ joining into one large dataset.
 
 ```{python}
+#| echo: false
+#| eval: false
+
 # This code cell is just naming the dataframes so that we can merge them later.
 # In the Monthly data set, we care about the columns: 'started_at', 'ended_at', 'start_station_name', 'end_station_name'
 monthly_rides_dv = pd.read_csv('data/Monthly_Bike_Trips.csv')
@@ -376,8 +435,16 @@ quarterly_rides_dv_2 = pd.read_csv('data/Quarterly_Bike_Trips_2.csv')
 
 ```
 
-8. 
+8. We first create dictionaries in preparation for renaming the columns such that we can concatenate the data 
+frames together on a column by column basis. Lines 445 - 450 rename the columns such that all columns across the 
+three datasets are the same, and line 450 creates the singular concatenated dataset. Lines 452 through 455 are for
+ data cleaning purposes, while line 458 groups the data by station and date, naming the new column "ride_count".  
+ Ride_count will be essential in the following visualizations and analysis.
+
 ```{python}
+#| echo: false
+#| eval: false
+
 # merging the quarterly data into one concat'd dataset
 
 #creating dictionaries to prepare for renaming columns in relevant datasets.
@@ -409,14 +476,24 @@ quarterly_rides["end_time"] = pd.to_datetime(quarterly_rides["end_time"], format
 quarterly_rides['year_month'] = quarterly_rides['start_time'].dt.strftime('%Y-%m')
 
 # Group by station and the year_month, and count the rides for each group
-rides_per_station_per_month = quarterly_rides.groupby(['from_station_name', 'year_month']).size().reset_index(name='ride_count')
+rides_per_station_per_month = quarterly_rides.groupby(['from_station_name', 'year_month']).size().reset_index
+(name='ride_count')
 
 # Show the result
 rides_per_station_per_month.head()
 ```
 
-9. 
+9. Line 467 is creating a new column titled "year" within the concatenated dataset based on the year of the 
+"year_month" column. We then break the concatenated dataset into two variables, one that contains data pre 2020 and 
+another that contains data post 2020 to highlight any eOects that may have occurred due to Covid. Additionally, it 
+is worth noting that instruction was fully remote for 2020- 2021, which further influenced our decision to create 
+two new graphs for our visualizations. After breaking the data into pre and post covid, we create two lasagna plots 
+to demonstrate Divvy ridership on a year_month and per station basis.
+
 ```{python}
+#| echo: false
+#| eval: false
+
 # creating a year column
 rides_per_station_per_month["year"] = pd.to_datetime(rides_per_station_per_month['year_month']).dt.year
 
@@ -446,11 +523,27 @@ lasagna2020 =  alt.Chart(rides_per_station_per_month_2020).mark_rect().encode(
 ```
 
 ```{python}
+#| echo: false
+#| eval: false
+
 lasagna2017 | lasagna2020
 ```
 
-10. 
+10. In this code block we attempt to generate a average monthly Divvy ridership to compare to the lasagna plots 
+above. We want to see how an aggregated analysis from 2017 to 2024 demonstrate **average** monthly ridership in 
+contrast to the lasagna plots, which show ridership on a monthly basis for each station. We group the data by year
+month, and take the mean of the ride_count column, saving that information in the newly created "avg_ride_count" 
+ column. Since the monthly data is saved numerically, we use the months dictionary to map the numeric values via a 
+ lambda function to the names of the month, ensuring to save the data in the column as a string. We then further
+  groupby the month column to create a bar chart of the average monthly Divvy utilization. The benefit of 
+  visualizing the data with the lasagna plots in comparison to the bar chart is that we are able to get extra 
+  information from the lasagna plots, such as which stations are most active and when, which is not visible in the
+  bar plot.
+
+
 ```{python}
+#| echo: false
+#| eval: false
 
 # Calculate average rides per month
 avg_rides_per_month = rides_per_station_per_month.groupby('year_month')['ride_count'].mean().reset_index(name='avg_ride_count')
@@ -493,8 +586,13 @@ bar_chart_divvy = alt.Chart(avg_rides_per_month_filtered_groupby).mark_bar().enc
 bar_chart_divvy
 ```
 
-11.
+11. This code block creates a file that is essential to plotting data in the dashboard. Finally, we also created a 
+multipage dashboard, one page for CTA rides visualizing aggregate rides from 2018 - 2023, and a page for Divvy 
+bikes visualizing aggregate rides from 2017 - 2023.
+
 ```{python}
+#| echo: false
+#| eval: false
 
 #creating the file that nasser needs for the dashboard
 quarterly_rides["year_month"] = pd.to_datetime(quarterly_rides["year_month"])
@@ -503,3 +601,6 @@ quarterly_rides["month"] = quarterly_rides["year_month"].dt.month
 quarterly_rides_groupby = quarterly_rides.groupby("month").count().reset_index().drop(["end_time", "from_station_name", "to_station_name", "year_month"], axis = 1).rename(columns = {"start_time" : "count"})
 
 ```
+
+We want to note that the dashboard was pushed separately to the GitHub repository for this project. These 
+dashboards can be accessed directly in the "dashboard.py" file.
