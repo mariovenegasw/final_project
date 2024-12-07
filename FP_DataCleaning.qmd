@@ -134,16 +134,15 @@ bar_chart | heatmap
 4. Divvy ridership
 
 ```{python}
-'''
-# Up to 2020, the information was uploaded quarterly, after this, it started to be uploaded monthly. Before merging the data, it is necessary to explore the data bases. 
+# Up to 2020, the information was uploaded quarterly, after this, it started to be uploaded monthly. Before merging the data, it is necessary to explore the data bases. All these data sets are included in the divy_data folder in the Drive
 
 # Quarterly data base:
-quarterly_sample = pd.read_csv('Divvy_Trips_2020_Q1.csv')
+quarterly_sample = pd.read_csv('divvy_data/Divvy_Trips_2020_Q1.csv')
 
 print(quarterly_sample.head())
 
 # Monthly data base:
-monthly_sample = pd.read_csv('FinalProject_DDBB/divvy_data/202004-divvy-tripdata.csv')
+monthly_sample = pd.read_csv('divvy_data/202004-divvy-tripdata.csv')
 
 print(monthly_sample.head())
 
